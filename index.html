@@ -1373,48 +1373,63 @@ window.filterTeacherSubject = function () {
     `;
   });
 };
-window.addStudentToClass = function () {
+window.addStudentToClass = async function () {
 
-  let name = document.getElementById("newStudentName").value.trim();
-  let cls = document.getElementById("newStudentClass").value;
+  try {
 
-  if (!name || !cls) {
-    alert("Enter student name and class");
-    return;
+    let name = document.getElementById("newStudentName").value.trim();
+    let cls = document.getElementById("newStudentClass").value;
+
+    if (!name || !cls) {
+      alert("Enter student name and class");
+      return;
+    }
+
+    // ensure classStudents exists
+    if (!window.classStudents) {
+      window.classStudents = {};
+    }
+
+    if (!window.classStudents[cls]) {
+      window.classStudents[cls] = [];
+    }
+
+    // prevent duplicates
+    if (window.classStudents[cls].includes(name)) {
+      alert("Student already exists");
+      return;
+    }
+
+    // add student locally
+    window.classStudents[cls].push(name);
+
+    // SAVE to localStorage
+    localStorage.setItem("classStudents", JSON.stringify(window.classStudents));
+
+    // 🔥 FIREBASE NOTIFICATION
+    await addDoc(collection(db, "notifications"), {
+      message: `New student added: ${name} in ${cls}`,
+      type: "student_added",
+      time: Date.now()
+    });
+
+    // CLEAR inputs
+    document.getElementById("newStudentName").value = "";
+    document.getElementById("newStudentClass").value = "";
+
+    alert("Student added successfully ✔");
+
+    // refresh marks system if class selected
+    if (typeof window.filterTeacherSubject === "function") {
+      window.filterTeacherSubject();
+    }
+
+    console.log("Updated classStudents:", window.classStudents);
+
+  } catch (err) {
+    console.error("Add student error:", err);
+    alert("Error while adding student");
   }
-
-  // ensure classStudents exists
-  if (!window.classStudents) {
-    window.classStudents = {};
-  }
-
-  if (!window.classStudents[cls]) {
-    window.classStudents[cls] = [];
-  }
-
-  // prevent duplicates
-  if (window.classStudents[cls].includes(name)) {
-    alert("Student already exists");
-    return;
-  }
-
-  window.classStudents[cls].push(name);
-
-  // SAVE to localStorage
-  localStorage.setItem("classStudents", JSON.stringify(window.classStudents));
-
-  // CLEAR inputs
-  document.getElementById("newStudentName").value = "";
-  document.getElementById("newStudentClass").value = "";
-
-  alert("Student added successfully ✔");
-
-  // IMPORTANT: refresh marks system if class selected
-  if (typeof window.filterTeacherSubject === "function") {
-    window.filterTeacherSubject();
-  }
-
-  console.log("Updated classStudents:", window.classStudents);
 };
 window.saveAllStudents = async function saveAllStudents() {
 
@@ -2071,6 +2086,53 @@ window.loadClassStudents = async function () {
     alert("Failed to load students from Firebase");
   }
 };
+  window.notify = function (message) {
+
+  const box = document.createElement("div");
+
+  box.innerText = message;
+
+  box.style.position = "fixed";
+  box.style.top = "20px";
+  box.style.right = "20px";
+  box.style.background = "#00ffff";
+  box.style.color = "#000";
+  box.style.padding = "12px";
+  box.style.borderRadius = "10px";
+  box.style.zIndex = "99999";
+  box.style.boxShadow = "0 0 15px #00ffff";
+
+  document.body.appendChild(box);
+
+  setTimeout(() => {
+    box.remove();
+  }, 4000);
+};
+  window.listenNotifications = function () {
+
+  const q = collection(db, "notifications");
+
+  onSnapshot(q, (snap) => {
+
+    snap.docChanges().forEach(change => {
+
+      if (change.type === "added") {
+
+        const data = change.doc.data();
+
+        window.notify("🔔 " + data.message);
+
+      }
+
+    });
+
+  });
+
+};
+  window.addEventListener("DOMContentLoaded", () => {
+  window.listenNotifications();
+});
+  
   window.deleteClassStudents = async function () {
 
   let cls = document.getElementById("printClassSelect").value;
