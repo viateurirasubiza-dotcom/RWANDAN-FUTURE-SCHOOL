@@ -1004,26 +1004,71 @@ window.load = async function load() {
   }
 
 };
+window.listenStudents = function () {
 
+  const q = collection(db, "students");
+
+  onSnapshot(q, (snapshot) => {
+
+    let students = [];
+
+    snapshot.forEach(doc => {
+      students.push({ id: doc.id, ...doc.data() });
+    });
+
+    // save locally (cache)
+    localStorage.setItem("students", JSON.stringify(students));
+
+    // rebuild classStudents
+    let grouped = {};
+
+    students.forEach(s => {
+      if (!grouped[s.class]) grouped[s.class] = [];
+      if (!grouped[s.class].includes(s.name)) {
+        grouped[s.class].push(s.name);
+      }
+    });
+
+    window.classStudents = grouped;
+    localStorage.setItem("classStudents", JSON.stringify(grouped));
+
+    // AUTO refresh teacher view only if open
+    const teacher = document.getElementById("teacherSystem");
+    if (teacher && teacher.style.display !== "none") {
+
+      if (typeof window.filterTeacherSubject === "function") {
+        window.filterTeacherSubject();
+      }
+
+    }
+
+  });
+
+};
 // Load saved theme automatically
 window.addEventListener("DOMContentLoaded", () => {
 
   const savedTheme = localStorage.getItem("theme");
 
   if (savedTheme === "dark") {
-
     document.body.classList.add("dark-mode");
-
-    const darkBtn = document.querySelector("[onclick='toggleDarkMode()']");
-
-    if (darkBtn) {
-      darkBtn.innerHTML = "☀️ Light Mode";
-    }
-
   }
 
-});
+  // update button text safely
+  const updateBtn = () => {
+    const darkBtn = document.querySelector("[onclick='toggleDarkMode()']");
+    if (!darkBtn) return;
 
+    if (document.body.classList.contains("dark-mode")) {
+      darkBtn.innerHTML = "☀️ Light Mode";
+    } else {
+      darkBtn.innerHTML = "🌙 Dark Mode";
+    }
+  };
+
+  updateBtn();
+
+});
 window.login = function () {
 
   try {
@@ -1969,7 +2014,7 @@ window.clearAll = async function () {
     alert("Delete all failed");
   }
 };
- window.loadClassStudents = function () {
+window.loadClassStudents = async function () {
 
   let cls = document.getElementById("printClassSelect").value;
 
@@ -1978,42 +2023,53 @@ window.clearAll = async function () {
     return;
   }
 
-  let students = JSON.parse(localStorage.getItem("students") || "[]");
+  try {
 
-  let uniqueMap = {};
+    // 🔥 GET DATA FROM FIREBASE
+    const snap = await getDocs(collection(db, "students"));
 
-  students
-    .filter(s => s.class === cls)
-    .forEach(s => {
+    let students = [];
 
-      let key = (s.sdms || s.name) + "_" + s.class;
-
-      if (!uniqueMap[key]) {
-        uniqueMap[key] = s;
-      }
+    snap.forEach(doc => {
+      students.push({ id: doc.id, ...doc.data() });
     });
 
-  let filtered = Object.values(uniqueMap);
+    let uniqueMap = {};
 
-  let html = "";
+    students
+      .filter(s => s.class === cls)
+      .forEach(s => {
 
-  filtered.forEach(s => {
-    html += `
-      <tr>
-        <td>${s.name}</td>
-        <td>${s.class}</td>
-        <td>${s.sdms || "-"}</td>
-        <td>
-          <button onclick="deleteStudent('${s.id}')">Delete</button>
-        </td>
-      </tr>
-    `;
-  });
+        let key = (s.sdms || s.name) + "_" + s.class;
 
-  // 🔥 IMPORTANT: FORCE CLEAR BEFORE SET
-  const tableBody = document.getElementById("classList");
-  tableBody.innerHTML = "";
-  tableBody.innerHTML = html;
+        if (!uniqueMap[key]) {
+          uniqueMap[key] = s;
+        }
+      });
+
+    let filtered = Object.values(uniqueMap);
+
+    let html = "";
+
+    filtered.forEach(s => {
+      html += `
+        <tr>
+          <td>${s.name}</td>
+          <td>${s.class}</td>
+          <td>${s.sdms || "-"}</td>
+          <td>
+            <button onclick="deleteStudent('${s.id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    document.getElementById("classList").innerHTML = html;
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to load students from Firebase");
+  }
 };
   window.deleteClassStudents = async function () {
 
