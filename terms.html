@@ -6,24 +6,96 @@
 
 <style>
 body{
+margin:0;
 font-family:Arial;
-background:#0a0a1a;
+background:linear-gradient(135deg,#050510,#0a0a1a);
 color:white;
-padding:40px;
-line-height:1.6;
+padding:30px;
 }
 
+/* MAIN CARD */
 .container{
-max-width:800px;
+max-width:850px;
 margin:auto;
-background:rgba(255,255,255,0.05);
-padding:25px;
-border-radius:12px;
-border:1px solid #00ffff;
+
+background:rgba(255,255,255,0.06);
+backdrop-filter:blur(12px);
+
+border:1px solid rgba(0,255,255,0.3);
+border-radius:15px;
+
+padding:30px;
+
+box-shadow:0 0 25px rgba(0,255,255,0.2);
+animation:fadeIn 0.6s ease-in-out;
 }
 
-h1,h2{
+/* TITLE */
+h1{
+text-align:center;
 color:#00ffff;
+text-shadow:0 0 10px #00ffff;
+margin-bottom:10px;
+}
+
+/* SUBTITLE */
+.subtitle{
+text-align:center;
+opacity:0.7;
+margin-bottom:20px;
+}
+
+/* SECTION TITLE */
+h2{
+color:#ff00ff;
+margin-top:25px;
+border-left:4px solid #00ffff;
+padding-left:10px;
+}
+
+/* TEXT */
+p{
+line-height:1.8;
+font-size:15px;
+}
+
+/* CONTACT */
+.contact{
+margin-top:25px;
+padding:15px;
+
+background:rgba(0,0,0,0.3);
+border:1px solid #00ffff33;
+border-radius:10px;
+}
+
+/* LINK */
+a{
+color:#00ffff;
+text-decoration:none;
+}
+
+a:hover{
+color:#ff00ff;
+}
+
+/* BACK BUTTON */
+.back{
+display:block;
+text-align:center;
+margin-top:25px;
+color:#00ffff;
+text-decoration:none;
+}
+
+.back:hover{
+color:#ff00ff;
+}
+
+/* ANIMATION */
+@keyframes fadeIn{
+from{opacity:0; transform:translateY(20px);}
+to{opacity:1; transform:translateY(0);}
 }
 </style>
 </head>
@@ -33,20 +105,46 @@ color:#00ffff;
 <div class="container">
 
 <h1>Terms of Service</h1>
-
-<p>Last Updated: June 2026</p>
+<p class="subtitle">Last Updated: June 2026</p>
 
 <h2>Acceptable Use</h2>
-<p>Users must use the platform only for educational purposes...</p>
+<p>
+Users must use the platform only for lawful educational and administrative purposes. Any misuse of the system is strictly prohibited.
+</p>
 
 <h2>User Responsibilities</h2>
-<p>Schools are responsible for data accuracy...</p>
+<p>
+Schools and authorized staff are responsible for ensuring that all data entered into the system is accurate and up to date.
+</p>
+
+<h2>Prohibited Activities</h2>
+<p>
+Users must not attempt unauthorized access, disrupt system operations, upload malicious software, or misuse school data.
+</p>
 
 <h2>Intellectual Property</h2>
-<p>RWANDAN FUTURE MIS is owned by IRASUBIZA VIATEUR...</p>
+<p>
+RWANDAN FUTURE MIS, including its design, code, and branding, is the property of IRASUBIZA VIATEUR unless otherwise stated.
+</p>
+
+<h2>Service Availability</h2>
+<p>
+We aim to provide reliable service but do not guarantee uninterrupted availability at all times.
+</p>
+
+<h2>Limitation of Liability</h2>
+<p>
+RWANDAN FUTURE MIS shall not be held responsible for data loss, system downtime, or damages resulting from misuse of the platform.
+</p>
 
 <h2>Contact</h2>
-<p>viateurirasubiza@gmail.com</p>
+<p>
+For questions regarding these Terms, contact:
+<br><br>
+<a href="mailto:viateurirasubiza@gmail.com">viateurirasubiza@gmail.com</a>
+</p>
+
+<a class="back" href="index.html">← Back to Home</a>
 
 </div>
 
