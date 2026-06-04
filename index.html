@@ -2309,6 +2309,59 @@ document.getElementById("logoUpload").addEventListener("change", async (e) => {
       "linear-gradient(135deg,#050510,#000000)";
   }
 }
+  let waTimer;
+
+function showWaPopup() {
+  const popup = document.getElementById("waPopup");
+  if (popup) popup.style.display = "block";
+}
+
+function hideWaPopup() {
+  const popup = document.getElementById("waPopup");
+  if (popup) popup.style.display = "none";
+}
+
+// close button (No Thanks)
+window.closePopup = function () {
+
+  hideWaPopup();
+
+  // save time user closed it
+  const now = Date.now();
+  localStorage.setItem("waClosedTime", now);
+
+  // restart timer (5 minutes = 300000ms)
+  clearTimeout(waTimer);
+  waTimer = setTimeout(() => {
+    showWaPopup();
+  }, 300000);
+};
+
+
+// auto show logic when page loads
+window.addEventListener("DOMContentLoaded", () => {
+
+  const lastClosed = localStorage.getItem("waClosedTime");
+  const now = Date.now();
+
+  if (!lastClosed) {
+    // first time user → show after 5 sec
+    setTimeout(showWaPopup, 5000);
+  } else {
+    const diff = now - lastClosed;
+
+    if (diff >= 300000) {
+      // 5 minutes passed → show again
+      setTimeout(showWaPopup, 3000);
+    } else {
+      // still waiting time
+      const remaining = 300000 - diff;
+
+      waTimer = setTimeout(showWaPopup, remaining);
+    }
+  }
+
+});
   function updateClock() {
   const now = new Date();
 
