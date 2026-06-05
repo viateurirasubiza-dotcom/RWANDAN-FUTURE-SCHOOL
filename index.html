@@ -1339,7 +1339,7 @@ window.logout = function logout() {
   // DO NOT reload page (this was breaking it)
 };
 
-window.filterTeacherSubject = function () {
+window.filterTeacherSubject = async function () {
 
   let teacherSubject = localStorage.getItem("teacherSubject");
   let cls = document.getElementById("class").value;
@@ -1349,29 +1349,70 @@ window.filterTeacherSubject = function () {
 
   if (!cls) return;
 
-  let students = window.classStudents?.[cls] || [];
+  try {
 
-  if (students.length === 0) {
-    container.innerHTML = "<p style='color:red'>No students in this class</p>";
-    return;
+    const snap = await getDocs(collection(db, "classStudents"));
+
+    let students = [];
+
+    snap.forEach(doc => {
+
+      const data = doc.data();
+
+      if (data.class === cls) {
+        students.push(data.name);
+      }
+
+    });
+
+    if (students.length === 0) {
+      container.innerHTML =
+        "<p style='color:red'>No students in this class</p>";
+      return;
+    }
+
+    let limit =
+      (teacherSubject === "P.E" || teacherSubject === "C.A")
+      ? 10
+      : 50;
+
+    students.forEach((student, index) => {
+
+      container.innerHTML += `
+        <div style="background:white;padding:10px;margin:8px;border-radius:10px;color:black;">
+
+          <h3>${student}</h3>
+
+          <label>Mid / ${limit}</label>
+          <input
+            type="number"
+            id="mid_${index}"
+            min="0"
+            max="${limit}"
+          >
+
+          <label>Exam / ${limit}</label>
+          <input
+            type="number"
+            id="exam_${index}"
+            min="0"
+            max="${limit}"
+          >
+
+        </div>
+      `;
+
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    container.innerHTML =
+      "<p style='color:red'>Failed to load students</p>";
+
   }
 
-  let limit = (teacherSubject === "P.E" || teacherSubject === "C.A") ? 10 : 50;
-
-  students.forEach((student, index) => {
-
-    container.innerHTML += `
-      <div style="background:white;padding:10px;margin:8px;border-radius:10px;color:black;">
-        <h3>${student}</h3>
-
-        <label>Mid / ${limit}</label>
-        <input type="number" id="mid_${index}" min="0" max="${limit}">
-
-        <label>Exam / ${limit}</label>
-        <input type="number" id="exam_${index}" min="0" max="${limit}">
-      </div>
-    `;
-  });
 };
 window.addStudentToClass = async function () {
 
@@ -1404,7 +1445,17 @@ window.addStudentToClass = async function () {
     window.classStudents[cls].push(name);
 
     // SAVE to localStorage
-    localStorage.setItem("classStudents", JSON.stringify(window.classStudents));
+    localStorage.setItem(
+      "classStudents",
+      JSON.stringify(window.classStudents)
+    );
+
+    // 🔥 SAVE STUDENT TO FIREBASE
+    await addDoc(collection(db, "classStudents"), {
+      name: name,
+      class: cls,
+      createdAt: Date.now()
+    });
 
     // 🔥 FIREBASE NOTIFICATION
     await addDoc(collection(db, "notifications"), {
@@ -1430,6 +1481,7 @@ window.addStudentToClass = async function () {
     console.error("Add student error:", err);
     alert("Error while adding student");
   }
+
 };
 window.saveAllStudents = async function saveAllStudents() {
 
