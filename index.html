@@ -754,38 +754,33 @@ cursor:pointer;
 <!-- LEVEL SELECT -->
   <div id="clock"></div>
   
-<button class="menuBtn" onclick="toggleSidebar()">☰</button>
+<button class="menuBtn" onclick="toggleMenu()">☰</button>
 
-<div class="sidebar" id="sidebar">
+<div class="menu-dropdown" id="menuDropdown">
 
-  <div class="sidebar-content">
+  <h3>📊 MIS Panel</h3>
 
-    <h2>📊 MIS Panel</h2>
+  <label>Level</label>
+  <select id="levelSelect" onchange="loadSubjects()">
+    <option value="">Select Level</option>
+    <option value="PRIMARY">PRIMARY</option>
+    <option value="SECONDARY">SECONDARY</option>
+  </select>
 
-    <label>Level</label>
-    <select id="levelSelect" onchange="loadSubjects()">
-      <option value="">Select Level</option>
-      <option value="PRIMARY">PRIMARY</option>
-      <option value="SECONDARY">SECONDARY</option>
-    </select>
+  <label>Subject</label>
+  <select id="subjectSelect">
+    <option value="">Select Subject</option>
+  </select>
 
-    <label>Subject</label>
-    <select id="subjectSelect">
-      <option value="">Select Subject</option>
-    </select>
+  <button class="att-btn" onclick="openAttendance()">
+    📋 Attendance
+  </button>
 
-    <button class="att-btn" onclick="openAttendance()">
-      📋 Attendance
-    </button>
-
-    <button class="att-btn" onclick="openStudents()">
-      🎓 Students
-    </button>
-
-  </div>
+  <button class="att-btn" onclick="openStudents()">
+    🎓 Students
+  </button>
 
 </div>
-
 </div>
 <div class="moving-text">
   <span>
