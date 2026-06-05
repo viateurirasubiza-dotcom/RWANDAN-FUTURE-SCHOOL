@@ -210,57 +210,83 @@ window.loadSummary = async function (cls) {
 
     if (a.class === cls) {
 
-      const key = `${a.name}_${a.subject}_W${a.week}`;
+      if (!data[a.name]) {
+        data[a.name] = {};
+      }
 
-      if (!data[key]) {
-        data[key] = {
-          name: a.name,
-          subject: a.subject,
-          week: a.week,
-          days: {}
+      const subject = a.subject?.toUpperCase().trim();
+
+      if (!data[a.name][subject]) {
+        data[a.name][subject] = {
+          records: [],
+          present: 0,
+          total: 0,
+          lastWeek: "-",
+          lastDay: "-"
         };
       }
 
-      if (a.day >= 1 && a.day <= 5) {
-        data[key].days[a.day] =
-          a.status === "Present" ? "✔" : "❌";
+      data[a.name][subject].records.push(a);
+
+      data[a.name][subject].total++;
+
+      if (a.status === "Present") {
+        data[a.name][subject].present++;
       }
+
+      // track latest week/day
+      data[a.name][subject].lastWeek = a.week || "-";
+      data[a.name][subject].lastDay = a.day || "-";
     }
   });
 
-  let html = "<h3>📊 Weekly Attendance (Mon–Fri)</h3>";
+  const subjects = [
+    "MATHEMATICS",
+    "ENGLISH",
+    "SCIENCE",
+    "PHYSICS",
+    "CHEMISTRY",
+    "BIOLOGY",
+    "COMPUTER SCIENCE"
+  ];
 
-  html += `
-  <table class="table">
-    <tr>
-      <th>Student</th>
-      <th>Subject</th>
-      <th>Week</th>
-      <th>D1</th>
-      <th>D2</th>
-      <th>D3</th>
-      <th>D4</th>
-      <th>D5</th>
-    </tr>
+  let html = `
+    <h3>📊 Attendance Summary (Week + Day + %)</h3>
+    <table class="table">
+      <tr>
+        <th>Student</th>
+        ${subjects.map(s => `<th>${s}</th>`).join("")}
+      </tr>
   `;
 
-  Object.values(data).forEach(d => {
+  Object.keys(data).forEach(name => {
 
-    html += `
-      <tr>
-        <td>${d.name}</td>
-        <td>${d.subject}</td>
-        <td>${d.week}</td>
-        <td>${d.days[1] || "-"}</td>
-        <td>${d.days[2] || "-"}</td>
-        <td>${d.days[3] || "-"}</td>
-        <td>${d.days[4] || "-"}</td>
-        <td>${d.days[5] || "-"}</td>
-      </tr>
-    `;
+    html += `<tr><td><b>${name}</b></td>`;
+
+    subjects.forEach(sub => {
+
+      const r = data[name][sub];
+
+      if (!r) {
+        html += `<td>-</td>`;
+      } else {
+
+        const percent = Math.round((r.present / r.total) * 100);
+
+        html += `
+          <td>
+            ${r.present > 0 ? "✔" : "❌"}<br>
+            Week ${r.lastWeek} | Day ${r.lastDay}<br>
+            <b>${percent}%</b>
+          </td>
+        `;
+      }
+    });
+
+    html += `</tr>`;
   });
 
-  html += "</table>";
+  html += `</table>`;
 
   box.innerHTML = html;
 };
