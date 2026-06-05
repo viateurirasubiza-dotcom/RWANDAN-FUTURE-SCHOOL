@@ -24,12 +24,55 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     window.db = db;
+
+    // ================= SUBJECT PASSWORDS =================
+    const subjectPasswords = {
+      MATHEMATICS: "mat12",
+      ENGLISH: "engl12",
+      IKINYARWANDA: "kinyar12",
+      SCIENCE: "sci12",
+      "SOCIAL STUDIES": "social12",
+      FRENCH: "french12",
+      "P.E": "pe12",
+      "C.A": "ca12",
+      PHYSICS: "phy12",
+      CHEMISTRY: "chem12",
+      BIOLOGY: "bio12",
+      GEOGRAPHY: "geo12",
+      HISTORY: "hist12",
+      ECONOMICS: "eco12",
+      ENTREPRENEURSHIP: "ent12",
+      "COMPUTER SCIENCE": "cs12",
+      LITERATURE: "lit12",
+      SWAHILI: "swa12"
+    };
+
+    window.currentSubject = null;
+
+    // ================= LOGIN =================
+    window.loginTeacher = function () {
+      const subject = document.getElementById("subjectLogin").value;
+      const pass = document.getElementById("password").value;
+
+      if (!subjectPasswords[subject] || subjectPasswords[subject] !== pass) {
+        alert("Wrong subject password!");
+        return;
+      }
+
+      window.currentSubject = subject;
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("app").style.display = "flex";
+    };
+
+    // ================= SIDEBAR TOGGLE =================
+    window.toggleSidebar = function () {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.style.display = sidebar.style.display === "none" ? "block" : "none";
+    };
 
     // ================= LOAD STUDENTS =================
     window.loadStudents = async function () {
-
       const cls = document.getElementById("classSelect").value;
       const box = document.getElementById("students");
 
@@ -71,6 +114,7 @@
       await addDoc(collection(db, "attendance"), {
         name,
         class: cls,
+        subject: window.currentSubject,
         status,
         date: today,
         timestamp: Date.now()
@@ -150,6 +194,7 @@
         <div class="profile">
           <h2>👨‍🎓 ${name}</h2>
           <p>Class: ${cls}</p>
+          <p>Subject: ${window.currentSubject}</p>
           <hr/>
       `;
 
@@ -171,169 +216,127 @@
       document.getElementById("students").innerHTML = html;
     };
 
-    // ================= QR =================
-    window.openQR = function () {
+    // ================= CLASSES UP TO S6 =================
+    window.loadClasses = function () {
+      const select = document.getElementById("classSelect");
 
-      const scanner = new Html5Qrcode("qr");
+      const classes = [
+        "P1","P2","P3","P4","P5","P6",
+        "S1","S2","S3","S4","S5","S6"
+      ];
 
-      scanner.start(
-        { facingMode: "environment" },
-        { fps: 10 },
-        async (text) => {
-
-          await mark(text, "Present");
-          scanner.stop();
-
-        }
-      );
+      select.innerHTML = `<option value="">Select Class</option>`;
+      classes.forEach(c => {
+        select.innerHTML += `<option>${c}</option>`;
+      });
     };
 
   </script>
 
-  <style>
-    body{
-      margin:0;
-      font-family:Arial;
-      background:#0a0f1f;
-      color:white;
-      display:flex;
-    }
+<style>
+body{margin:0;font-family:Arial;background:#0a0f1f;color:white}
 
-    /* SIDEBAR */
-    .sidebar{
-      width:220px;
-      background:#111827;
-      height:100vh;
-      padding:20px;
-      position:fixed;
-    }
+/* LOGIN */
+#loginBox{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.login{
+  background:#111827;
+  padding:20px;
+  border-radius:12px;
+}
 
-    .sidebar h2{
-      color:#00e5ff;
-    }
+/* APP */
+#app{display:none}
 
-    .menu button{
-      width:100%;
-      margin-top:10px;
-      padding:10px;
-      border:none;
-      background:#1f2937;
-      color:white;
-      border-radius:8px;
-      cursor:pointer;
-    }
+/* SIDEBAR */
+.sidebar{
+  width:220px;
+  background:#111827;
+  height:100vh;
+  padding:20px;
+  position:fixed;
+}
 
-    /* MAIN */
-    .main{
-      margin-left:240px;
-      padding:20px;
-      width:100%;
-    }
+/* MAIN */
+.main{
+  margin-left:240px;
+  padding:20px;
+  width:100%;
+}
 
-    h1{
-      color:#00e5ff;
-    }
+/* BUTTONS */
+button{
+  padding:10px;
+  margin:5px;
+  border:none;
+  border-radius:8px;
+}
 
-    select,button{
-      padding:10px;
-      margin:5px;
-      border-radius:8px;
-      border:none;
-    }
+.present{background:#16a34a;color:white}
+.absent{background:#dc2626;color:white}
 
-    /* STUDENT CARDS */
-    .card{
-      background:#111827;
-      padding:15px;
-      margin:10px;
-      border-radius:12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      border:1px solid #1f2937;
-    }
-
-    .btns button{
-      margin-left:5px;
-    }
-
-    .present{
-      background:#16a34a;
-      color:white;
-    }
-
-    .absent{
-      background:#dc2626;
-      color:white;
-    }
-
-    /* SUMMARY */
-    .summaryCard{
-      background:#111827;
-      padding:15px;
-      margin:10px;
-      border-radius:12px;
-      border-left:4px solid #00e5ff;
-    }
-
-    .stats span{
-      margin-right:10px;
-    }
-
-    /* PROFILE */
-    .profile{
-      background:#111827;
-      padding:20px;
-      border-radius:12px;
-    }
-
-    .historyRow{
-      display:flex;
-      justify-content:space-between;
-      padding:5px;
-      border-bottom:1px solid #222;
-    }
-
-    #qr{
-      margin-top:20px;
-    }
-  </style>
+.card,.summaryCard{
+  background:#111827;
+  padding:15px;
+  margin:10px;
+  border-radius:12px;
+}
+</style>
 </head>
 
-<body>
+<body onload="loadClasses()">
+
+<!-- LOGIN -->
+<div id="loginBox">
+  <div class="login">
+    <h2>Teacher Login</h2>
+
+    <select id="subjectLogin">
+      <option>MATHEMATICS</option>
+      <option>ENGLISH</option>
+      <option>SCIENCE</option>
+      <option>PHYSICS</option>
+      <option>CHEMISTRY</option>
+      <option>BIOLOGY</option>
+      <option>COMPUTER SCIENCE</option>
+    </select>
+
+    <input type="password" id="password" placeholder="Enter password">
+
+    <button onclick="loginTeacher()">Login</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
 
   <!-- SIDEBAR -->
-  <div class="sidebar">
-    <h2>📊 SaaS MIS</h2>
-
-    <div class="menu">
-      <button onclick="loadStudents()">👨‍🎓 Students</button>
-      <button onclick="openQR()">📷 QR Attendance</button>
-    </div>
+  <div class="sidebar" id="sidebar">
+    <h2>📊 MIS</h2>
+    <button onclick="loadStudents()">Students</button>
   </div>
 
   <!-- MAIN -->
   <div class="main">
 
+    <button onclick="toggleSidebar()">☰ Menu</button>
+
     <h1>Attendance Dashboard</h1>
 
-    <select id="classSelect" onchange="loadStudents()">
-      <option value="">Select Class</option>
-      <option>P1</option><option>P2</option><option>P3</option>
-      <option>P4</option><option>P5</option><option>P6</option>
-      <option>S1</option><option>S2</option><option>S3</option>
-    </select>
-
-    <hr/>
+    <select id="classSelect" onchange="loadStudents()"></select>
 
     <div id="students"></div>
 
-    <h2>📊 Summary</h2>
+    <h2>Summary</h2>
     <div id="summary"></div>
 
-    <div id="qr"></div>
-
   </div>
+
+</div>
 
 </body>
 </html>
