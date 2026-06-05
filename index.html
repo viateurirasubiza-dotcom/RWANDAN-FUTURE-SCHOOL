@@ -817,6 +817,9 @@ cursor:pointer;
   <button class="att-btn" onclick="openStudents()">
     🎓 Students
   </button>
+  <button onclick="openCampusConnect()">
+    👨‍🏫 Campus Connect
+  </button>
 
 </div>
 </div>
@@ -2691,6 +2694,11 @@ window.toggleSidebar = function () {
   }
 
 });
+  window.openCampusConnect = function () {
+  document.getElementById("campusConnect").style.display = "block";
+  document.getElementById("app").style.display = "none";
+  document.getElementById("loginBox").style.display = "none";
+};
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
