@@ -701,6 +701,46 @@ padding:5px 10px;
 border-radius:5px;
 cursor:pointer;
 }
+  .sidebar{
+  width:240px;
+  height:100vh;
+  background:#111827;
+  position:fixed;
+  left:0;
+  top:0;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  color:white;
+  transition:0.3s ease;
+  overflow:hidden;
+}
+
+.main{
+  margin-left:260px;
+  transition:0.3s ease;
+}
+
+.menuBtn{
+  font-size:22px;
+  background:#111827;
+  color:white;
+  border:none;
+  padding:10px 15px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.att-btn{
+  margin-top:20px;
+  padding:12px;
+  background:#00e5ff;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+}
   
 
 </style>
@@ -714,30 +754,28 @@ cursor:pointer;
 <!-- LEVEL SELECT -->
   <div id="clock"></div>
   
-<select id="levelSelect" onchange="loadSubjects()">
+<button class="menuBtn" onclick="toggleSidebar()">☰</button>
+  <div class="sidebar" id="sidebar">
 
-  <option value="">Select Level</option>
+  <h2>📊 MIS Panel</h2>
 
-  <option value="PRIMARY">PRIMARY</option>
+  <label>Level</label>
+  <select id="levelSelect" onchange="loadSubjects()">
+    <option value="">Select Level</option>
+    <option value="PRIMARY">PRIMARY</option>
+    <option value="SECONDARY">SECONDARY</option>
+  </select>
 
-  <option value="SECONDARY">SECONDARY</option>
+  <label>Subject</label>
+  <select id="subjectSelect">
+    <option value="">Select Subject</option>
+  </select>
 
-</select>
+  <button class="att-btn" onclick="openAttendance()">
+    📋 Attendance
+  </button>
 
-<!-- SUBJECT SELECT -->
-<select id="subjectSelect">
-
-  <option value="">Select Subject</option>
-
-</select>
-
-
-
-</select>
-      <!-- ✅ ATTENDANCE BUTTON HERE -->
-<button onclick="openAttendance()" class="att-btn">
-  📋 Attendance
-</button>
+</div>
 <div class="moving-text">
   <span>
     RWANDAN SCHOOL MIS | Developed by IRASUBIZA VIATEUR | East African University Rwanda - Nyagatare | Contact: 0794476085
@@ -2559,6 +2597,35 @@ setInterval(updateClock, 1000);
 updateClock();
   window.openAttendance = function () {
   window.location.href = "attendance.html";
+};
+  let sidebarOpen = true;
+
+window.toggleSidebar = function () {
+  const sidebar = document.getElementById("sidebar");
+  const main = document.querySelector(".main");
+
+  if (sidebarOpen) {
+    sidebar.style.width = "70px";
+    main.style.marginLeft = "90px";
+
+    // hide text
+    document.querySelectorAll(".sidebar label").forEach(el => el.style.display = "none");
+    document.querySelectorAll(".sidebar select").forEach(el => el.style.display = "none");
+    document.querySelector(".att-btn").style.display = "none";
+
+    sidebarOpen = false;
+
+  } else {
+    sidebar.style.width = "240px";
+    main.style.marginLeft = "260px";
+
+    // show text
+    document.querySelectorAll(".sidebar label").forEach(el => el.style.display = "block");
+    document.querySelectorAll(".sidebar select").forEach(el => el.style.display = "block");
+    document.querySelector(".att-btn").style.display = "block";
+
+    sidebarOpen = true;
+  }
 };
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
