@@ -291,7 +291,7 @@ window.onload = function(){
 };
 
 /* ================= DEMO STUDENTS ================= */
-window.loadStudents = function(){
+window.loadStudents = async function(){
 
   const cls = document.getElementById("classSelect").value;
   const box = document.getElementById("students");
@@ -300,23 +300,38 @@ window.loadStudents = function(){
 
   if(!cls) return;
 
-  for(let i=1;i<=6;i++){
-    box.innerHTML += `
-      <div class="card">
-        <div>
-          <b>Student ${i}</b><br>
-          <span class="small">${cls} - ${window.currentSubject}</span>
-        </div>
+  const snap = await getDocs(collection(db, "classStudents"));
 
-        <div>
-          <button class="present">Present</button>
-          <button class="absent">Absent</button>
+  let found = 0;
+
+  snap.forEach(docSnap => {
+    const s = docSnap.data();
+
+    if(s.class === cls){
+      found++;
+
+      box.innerHTML += `
+        <div class="card">
+          <div>
+            <b>${s.name}</b><br>
+            <span class="small">${s.class} - ${window.currentSubject}</span>
+          </div>
+
+          <div>
+            <button class="present">Present</button>
+            <button class="absent">Absent</button>
+          </div>
         </div>
-      </div>
+      `;
+    }
+  });
+
+  if(found === 0){
+    box.innerHTML = `
+      <p class="small">No students found in ${cls}</p>
     `;
   }
 };
-
 </script>
 
 </body>
