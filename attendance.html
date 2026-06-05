@@ -132,76 +132,66 @@ window.loadStudents = async function () {
 
 window.submitAttendance = async function () {
 
-const cls = document.getElementById("classSelect").value;
+  const cls = document.getElementById("classSelect").value;
 
-if (!cls) {
-alert("Select class first!");
-return;
-}
+  if (!cls) {
+    alert("Select class first!");
+    return;
+  }
 
-if (!window.tempAttendance || Object.keys(window.tempAttendance).length === 0) {
-alert("No attendance selected!");
-return;
-}
+  if (!window.tempAttendance || Object.keys(window.tempAttendance).length === 0) {
+    alert("No attendance selected!");
+    return;
+  }
 
-const today = new Date();
+  const today = new Date();
 
-// WEEK NUMBER
-const week = Math.ceil(today.getDate() / 7);
+  const week = Math.ceil(today.getDate() / 7);
 
-// DAY NUMBER (Mon=1 ... Fri=5)
-let day = today.getDay();
+  let day = today.getDay();
 
-if (day === 0 || day === 6) {
-alert("Attendance cannot be submitted on weekends!");
-return;
-}
+  if (day === 0 || day === 6) {
+    alert("Attendance cannot be submitted on weekends!");
+    return;
+  }
 
-const dayMap = {
-1: 1, // Monday
-2: 2, // Tuesday
-3: 3, // Wednesday
-4: 4, // Thursday
-5: 5  // Friday
-};
+  const dayMap = {
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5
+  };
 
-day = dayMap[day];
+  day = dayMap[day];
 
-try {
+  try {
 
-```
-for (const name in window.tempAttendance) {
+    for (const name in window.tempAttendance) {
 
-  await addDoc(collection(db, "attendance"), {
-    name: name,
-    class: cls,
-    subject: window.currentSubject,
-    status: window.tempAttendance[name],
-    date: today.toISOString().split("T")[0],
-    week: week,
-    day: day,
-    timestamp: Date.now()
-  });
+      await addDoc(collection(db, "attendance"), {
+        name,
+        class: cls,
+        subject: window.currentSubject,
+        status: window.tempAttendance[name],
+        date: today.toISOString().split("T")[0],
+        week,
+        day,
+        timestamp: Date.now()
+      });
 
-}
+    }
 
-alert("Attendance Submitted Successfully ✔");
+    alert("Attendance Submitted Successfully ✔");
 
-// RESET
-window.tempAttendance = {};
+    window.tempAttendance = {};
 
-// RELOAD SUMMARY
-await loadSummary(cls);
-```
+    await loadSummary(cls);
 
-} catch (error) {
-
-```
-console.error(error);
-alert("Error saving attendance!");
-```
-
-}
+  } catch (error) {
+    console.error(error);
+    alert("Error saving attendance!");
+  }
 };
 
   window.closeProfile = function () {
