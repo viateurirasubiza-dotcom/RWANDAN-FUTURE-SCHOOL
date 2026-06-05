@@ -12,10 +12,7 @@ body{
   color:white;
 }
 
-/* REMOVE UNDERLINE ON LINKS */
-a{
-  text-decoration:none;
-}
+a{text-decoration:none;}
 
 /* HEADER */
 .header{
@@ -41,7 +38,6 @@ a{
   border-radius:10px;
   cursor:pointer;
   font-weight:bold;
-  color:black;
 }
 
 /* GRID */
@@ -62,15 +58,9 @@ a{
   padding:15px;
   text-align:center;
   box-shadow:0 0 15px rgba(0,255,255,0.2);
-  transition:0.3s;
 }
 
-.card:hover{
-  transform:translateY(-5px);
-  box-shadow:0 0 25px #00ffff88;
-}
-
-/* CIRCLE IMAGE */
+/* IMAGE CIRCLE */
 .card img{
   width:120px;
   height:120px;
@@ -78,13 +68,12 @@ a{
   object-fit:cover;
   border:3px solid #00ffff;
   margin-bottom:10px;
-  box-shadow:0 0 15px #00ffff55;
 }
 
 /* BUTTONS */
 .btn{
   display:block;
-  margin:8px 0;
+  margin:6px 0;
   padding:8px;
   border:none;
   border-radius:8px;
@@ -92,20 +81,10 @@ a{
   font-weight:bold;
 }
 
-.chat{
-  background:#25D366;
-  color:white;
-}
-
-.call{
-  background:#00ffff;
-  color:black;
-}
-
-.email{
-  background:#ff00ff;
-  color:white;
-}
+.chat{background:#25D366;color:white;}
+.call{background:#00ffff;color:black;}
+.email{background:#ff00ff;color:white;}
+.upload{background:#ffcc00;color:black;}
 </style>
 </head>
 
@@ -122,47 +101,38 @@ a{
 
   <!-- CARD 1 -->
   <div class="card">
-    <img src="images/librarian.jpg" alt="Librarian">
+    <img id="img1" src="images/librarian.jpg">
     <h3>LIBRARIAN</h3>
     <p>CHEBET ASUMAN</p>
-    <p>📞 +260702573532</p>
 
-    <a href="https://wa.me/260702573532" target="_blank">
-      <button class="btn chat">WhatsApp</button>
-    </a>
+    <input type="file" accept="image/*" onchange="loadImage(event,'img1')">
 
-    <a href="tel:+260702573532">
-      <button class="btn call">Call</button>
-    </a>
-
-    <a href="mailto:chebetasuman@gmail.com">
-      <button class="btn email">Email</button>
-    </a>
+    <a href="https://wa.me/260702573532"><button class="btn chat">WhatsApp</button></a>
+    <a href="tel:+260702573532"><button class="btn call">Call</button></a>
+    <a href="mailto:chebetasuman@gmail.com"><button class="btn email">Email</button></a>
   </div>
 
   <!-- CARD 2 -->
   <div class="card">
-    <img src="images/dean.jpg" alt="Dean of Students">
+    <img id="img2" src="images/dean.jpg">
     <h3>DEAN OF STUDENTS</h3>
     <p>MUGABO DAVID</p>
-    <p>📞 +250789531136</p>
 
-    <a href="https://wa.me/250789531136" target="_blank">
-      <button class="btn chat">WhatsApp</button>
-    </a>
+    <input type="file" accept="image/*" onchange="loadImage(event,'img2')">
 
-    <a href="tel:+250789531136">
-      <button class="btn call">Call</button>
-    </a>
-
-    <a href="mailto:mugbodavid25@gmail.com">
-      <button class="btn email">Email</button>
-    </a>
+    <a href="https://wa.me/250789531136"><button class="btn chat">WhatsApp</button></a>
+    <a href="tel:+250789531136"><button class="btn call">Call</button></a>
+    <a href="mailto:mugbodavid25@gmail.com"><button class="btn email">Email</button></a>
   </div>
 
 </div>
 
 <script>
+function loadImage(event, id){
+  const img = document.getElementById(id);
+  img.src = URL.createObjectURL(event.target.files[0]);
+}
+
 function goBack(){
   window.history.back();
 }
