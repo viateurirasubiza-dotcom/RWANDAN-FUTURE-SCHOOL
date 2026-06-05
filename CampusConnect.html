@@ -27,7 +27,7 @@ body{
 }
 
 .card{
-  width:260px;
+  width:270px;
   background:rgba(255,255,255,0.08);
   border-radius:15px;
   padding:15px;
@@ -45,26 +45,29 @@ body{
 }
 
 .btn{
-  margin-top:8px;
+  margin-top:6px;
   padding:8px;
   border:none;
   border-radius:8px;
   cursor:pointer;
-  background:#ffcc00;
   font-weight:bold;
+  width:100%;
 }
 
-/* 🔥 HIDE FILE INPUT */
-.hidden{
-  display:none;
-}
+.chat{background:#25D366;color:white;}
+.call{background:#00ffff;color:black;}
+.email{background:#ff00ff;color:white;}
+.upload{background:#ffcc00;color:black;}
+
+.hidden{display:none;}
+a{text-decoration:none;}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-  <h1>🏫 Campus Connect (Upload without Choose File)</h1>
+  <h1>🏫 Campus Connect (Full System)</h1>
 </div>
 
 <div class="container">
@@ -72,25 +75,51 @@ body{
   <!-- CARD 1 -->
   <div class="card">
     <img id="img1" src="images/librarian.jpg">
+
     <h3>LIBRARIAN</h3>
+    <p>CHEBET ASUMAN</p>
+    <p>📞 +260702573532</p>
 
     <input type="file" id="file1" class="hidden" accept="image/*">
 
-    <button class="btn" onclick="openFile('file1')">
-      Upload Photo
-    </button>
+    <button class="btn upload" onclick="openFile('file1')">Upload Photo</button>
+
+    <a href="https://wa.me/260702573532">
+      <button class="btn chat">WhatsApp</button>
+    </a>
+
+    <a href="tel:+260702573532">
+      <button class="btn call">Call</button>
+    </a>
+
+    <a href="mailto:chebetasuman@gmail.com">
+      <button class="btn email">Email</button>
+    </a>
   </div>
 
   <!-- CARD 2 -->
   <div class="card">
     <img id="img2" src="images/dean.jpg">
+
     <h3>DEAN OF STUDENTS</h3>
+    <p>MUGABO DAVID</p>
+    <p>📞 +250789531136</p>
 
     <input type="file" id="file2" class="hidden" accept="image/*">
 
-    <button class="btn" onclick="openFile('file2')">
-      Upload Photo
-    </button>
+    <button class="btn upload" onclick="openFile('file2')">Upload Photo</button>
+
+    <a href="https://wa.me/250789531136">
+      <button class="btn chat">WhatsApp</button>
+    </a>
+
+    <a href="tel:+250789531136">
+      <button class="btn call">Call</button>
+    </a>
+
+    <a href="mailto:mugbodavid25@gmail.com">
+      <button class="btn email">Email</button>
+    </a>
   </div>
 
 </div>
@@ -113,21 +142,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 
-/* 🔥 OPEN FILE AUTOMATICALLY */
-window.openFile = function(fileId){
-  document.getElementById(fileId).click();
+/* OPEN FILE PICKER */
+window.openFile = function(id){
+  document.getElementById(id).click();
 };
 
-/* 🔥 WHEN FILE SELECTED → UPLOAD AUTOMATIC */
+/* AUTO UPLOAD */
 document.getElementById("file1").addEventListener("change", () => upload("file1","img1","librarian"));
 document.getElementById("file2").addEventListener("change", () => upload("file2","img2","dean"));
 
 async function upload(fileId, imgId, name){
 
   const file = document.getElementById(fileId).files[0];
-  if(!file){
-    return;
-  }
+  if(!file) return;
 
   const storageRef = ref(storage, "campusconnect/" + name + ".jpg");
 
