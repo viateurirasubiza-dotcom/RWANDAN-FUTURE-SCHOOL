@@ -73,20 +73,28 @@ body{
 #app{
   display:none;
   min-height:100vh;
+  background:#0a0f1f;
 }
 
-/* ================= SIDEBAR ================= */
+/* SIDEBAR */
 .sidebar{
-  width:230px;
-  background:#111827;
+  width:240px;
   height:100vh;
   position:fixed;
   left:0;
   top:0;
   padding:20px;
+  background: linear-gradient(180deg,#0f172a,#111827);
+  box-shadow: 5px 0 20px rgba(0,0,0,0.4);
 }
 
-/* ================= MAIN ================= */
+/* BRAND */
+.sidebar h2{
+  color:#0ea5e9;
+  margin-bottom:5px;
+}
+
+/* MAIN */
 .main{
   margin-left:250px;
   padding:20px;
@@ -94,46 +102,89 @@ body{
   background:#0a0f1f;
 }
 
-/* ================= CARDS ================= */
-.card{
+/* TOPBAR (SAAS STYLE) */
+.topbar{
+  background: linear-gradient(90deg,#111827,#1f2937);
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:20px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.4);
+}
+
+.topbar h1{
+  margin:0;
+}
+
+/* CLASS SELECT */
+select{
+  padding:12px;
+  border-radius:10px;
+  border:none;
   background:#111827;
+  color:white;
+  margin-bottom:15px;
+  width:200px;
+}
+
+/* STUDENT CARD (MODERN SAAS) */
+.card{
+  background: linear-gradient(145deg,#111827,#0f172a);
   padding:15px;
   margin:10px 0;
-  border-radius:12px;
+  border-radius:14px;
   display:flex;
   justify-content:space-between;
   align-items:center;
   border:1px solid #1f2937;
+  transition:0.3s;
+  box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+.card:hover{
+  transform:translateY(-3px);
+  border-color:#0ea5e9;
 }
 
 /* BUTTONS */
 .present{
   background:#16a34a;
-  color:white;
   border:none;
   padding:8px 12px;
   border-radius:8px;
+  color:white;
+  cursor:pointer;
 }
 
 .absent{
   background:#dc2626;
-  color:white;
   border:none;
   padding:8px 12px;
   border-radius:8px;
+  color:white;
+  cursor:pointer;
 }
 
-/* TOPBAR */
-.topbar{
-  background:#111827;
-  padding:15px;
-  border-radius:12px;
-  margin-bottom:15px;
-}
-
+/* SMALL TEXT */
 .small{
   font-size:12px;
   opacity:0.7;
+}
+
+/* SIDEBAR BUTTONS */
+.sidebar button{
+  width:100%;
+  margin-top:10px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#1f2937;
+  color:white;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.sidebar button:hover{
+  background:#0ea5e9;
 }
 
 </style>
@@ -174,12 +225,15 @@ body{
     <p class="small">Attendance System</p>
 
     <button onclick="loadStudents()">👨‍🎓 Students</button>
+    <button>📊 Summary</button>
+    <button>⚙️ Settings</button>
   </div>
 
   <div class="main">
 
     <div class="topbar">
       <h1>Attendance Dashboard</h1>
+      <p class="small">Modern SaaS Control Panel</p>
     </div>
 
     <select id="classSelect" onchange="loadStudents()"></select>
@@ -189,7 +243,6 @@ body{
   </div>
 
 </div>
-
 <script>
 
 /* ================= PASSWORDS ================= */
