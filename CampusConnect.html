@@ -154,8 +154,8 @@ document.getElementById("file2").addEventListener("change", () => upload("file2"
 async function upload(fileId, imgId, name){
 
   const file = document.getElementById(fileId).files[0];
-  if(!file) return;
 
+  // 🚀 NO CONDITION (as you requested)
   const storageRef = ref(storage, "campusconnect/" + name + ".jpg");
 
   await uploadBytes(storageRef, file);
