@@ -53,13 +53,18 @@ body{
   background:#ffcc00;
   font-weight:bold;
 }
+
+/* 🔥 HIDE FILE INPUT */
+.hidden{
+  display:none;
+}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-  <h1>🏫 Campus Connect (Firebase Upload)</h1>
+  <h1>🏫 Campus Connect (Upload without Choose File)</h1>
 </div>
 
 <div class="container">
@@ -69,9 +74,9 @@ body{
     <img id="img1" src="images/librarian.jpg">
     <h3>LIBRARIAN</h3>
 
-    <input type="file" id="file1" accept="image/*">
+    <input type="file" id="file1" class="hidden" accept="image/*">
 
-    <button class="btn" onclick="uploadImage('file1','img1','librarian')">
+    <button class="btn" onclick="openFile('file1')">
       Upload Photo
     </button>
   </div>
@@ -81,9 +86,9 @@ body{
     <img id="img2" src="images/dean.jpg">
     <h3>DEAN OF STUDENTS</h3>
 
-    <input type="file" id="file2" accept="image/*">
+    <input type="file" id="file2" class="hidden" accept="image/*">
 
-    <button class="btn" onclick="uploadImage('file2','img2','dean')">
+    <button class="btn" onclick="openFile('file2')">
       Upload Photo
     </button>
   </div>
@@ -96,7 +101,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getStorage, ref, uploadBytes, getDownloadURL }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-/* ✅ FIXED FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSy....",
   authDomain: "neomis-77b36.firebaseapp.com",
@@ -109,13 +113,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 
-/* ✅ UPLOAD FUNCTION */
-window.uploadImage = async function(fileId, imgId, name){
+/* 🔥 OPEN FILE AUTOMATICALLY */
+window.openFile = function(fileId){
+  document.getElementById(fileId).click();
+};
+
+/* 🔥 WHEN FILE SELECTED → UPLOAD AUTOMATIC */
+document.getElementById("file1").addEventListener("change", () => upload("file1","img1","librarian"));
+document.getElementById("file2").addEventListener("change", () => upload("file2","img2","dean"));
+
+async function upload(fileId, imgId, name){
 
   const file = document.getElementById(fileId).files[0];
-
   if(!file){
-    alert("Please select image first");
     return;
   }
 
@@ -128,7 +138,7 @@ window.uploadImage = async function(fileId, imgId, name){
   document.getElementById(imgId).src = url;
 
   alert("Upload successful ✅");
-};
+}
 
 </script>
 
