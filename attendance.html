@@ -3,249 +3,28 @@
 <head>
 <title>Attendance SaaS Pro</title>
 
-<style>
+<script type="module">
 
-/* ================= GLOBAL ================= */
-body{
-  margin:0;
-  font-family: 'Segoe UI', sans-serif;
-  background:#0a0f1f;
-  color:white;
-}
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSy....",
+  authDomain: "neomis-77b36.firebaseapp.com",
+  projectId: "neomis-77b36"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.db = db;
 
 /* ================= LOGIN ================= */
-#loginBox{
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background: linear-gradient(-45deg, #0f172a, #1e3a8a, #0ea5e9, #111827);
-  background-size: 400% 400%;
-  animation: gradientBG 10s ease infinite;
-}
-
-@keyframes gradientBG {
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
-}
-
-.loginCard{
-  width:320px;
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(15px);
-  padding:30px;
-  border-radius:16px;
-  text-align:center;
-  box-shadow:0 10px 40px rgba(0,0,0,0.4);
-  border:1px solid rgba(255,255,255,0.1);
-  animation: pop 0.5s ease;
-}
-
-@keyframes pop{
-  from{transform:scale(0.8); opacity:0}
-  to{transform:scale(1); opacity:1}
-}
-
-.loginCard select,
-.loginCard input{
-  width:100%;
-  padding:12px;
-  margin:8px 0;
-  border:none;
-  border-radius:10px;
-  background:rgba(255,255,255,0.15);
-  color:white;
-}
-
-.loginCard button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:linear-gradient(90deg,#0ea5e9,#2563eb);
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-/* ================= APP ================= */
-#app{
-  display:none;
-  min-height:100vh;
-  background:#0a0f1f;
-}
-
-/* SIDEBAR */
-.sidebar{
-  width:240px;
-  height:100vh;
-  position:fixed;
-  left:0;
-  top:0;
-  padding:20px;
-  background: linear-gradient(180deg,#0f172a,#111827);
-  box-shadow: 5px 0 20px rgba(0,0,0,0.4);
-}
-
-/* BRAND */
-.sidebar h2{
-  color:#0ea5e9;
-  margin-bottom:5px;
-}
-
-/* MAIN */
-.main{
-  margin-left:250px;
-  padding:20px;
-  min-height:100vh;
-  background:#0a0f1f;
-}
-
-/* TOPBAR (SAAS STYLE) */
-.topbar{
-  background: linear-gradient(90deg,#111827,#1f2937);
-  padding:15px;
-  border-radius:12px;
-  margin-bottom:20px;
-  box-shadow:0 5px 20px rgba(0,0,0,0.4);
-}
-
-.topbar h1{
-  margin:0;
-}
-
-/* CLASS SELECT */
-select{
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  background:#111827;
-  color:white;
-  margin-bottom:15px;
-  width:200px;
-}
-
-/* STUDENT CARD (MODERN SAAS) */
-.card{
-  background: linear-gradient(145deg,#111827,#0f172a);
-  padding:15px;
-  margin:10px 0;
-  border-radius:14px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border:1px solid #1f2937;
-  transition:0.3s;
-  box-shadow:0 5px 15px rgba(0,0,0,0.3);
-}
-
-.card:hover{
-  transform:translateY(-3px);
-  border-color:#0ea5e9;
-}
-
-/* BUTTONS */
-.present{
-  background:#16a34a;
-  border:none;
-  padding:8px 12px;
-  border-radius:8px;
-  color:white;
-  cursor:pointer;
-}
-
-.absent{
-  background:#dc2626;
-  border:none;
-  padding:8px 12px;
-  border-radius:8px;
-  color:white;
-  cursor:pointer;
-}
-
-/* SMALL TEXT */
-.small{
-  font-size:12px;
-  opacity:0.7;
-}
-
-/* SIDEBAR BUTTONS */
-.sidebar button{
-  width:100%;
-  margin-top:10px;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#1f2937;
-  color:white;
-  cursor:pointer;
-  transition:0.3s;
-}
-
-.sidebar button:hover{
-  background:#0ea5e9;
-}
-
-</style>
-</head>
-
-<body>
-
-<!-- ================= LOGIN ================= -->
-<div id="loginBox">
-
-  <div class="loginCard">
-
-    <h2>🎓 Teacher Login</h2>
-
-    <select id="subjectLogin">
-      <option>MATHEMATICS</option>
-      <option>ENGLISH</option>
-      <option>SCIENCE</option>
-      <option>PHYSICS</option>
-      <option>CHEMISTRY</option>
-      <option>BIOLOGY</option>
-      <option>COMPUTER SCIENCE</option>
-    </select>
-
-    <input type="password" id="password" placeholder="Enter password">
-
-    <button onclick="loginTeacher()">Login</button>
-
-  </div>
-
-</div>
-
-<!-- ================= DASHBOARD ================= -->
-<div id="app">
-
-  <div class="sidebar">
-    <h2>📊 SaaS MIS</h2>
-    <p class="small">Attendance System</p>
-
-    <button onclick="loadStudents()">👨‍🎓 Students</button>
-    <button>📊 Summary</button>
-    <button>⚙️ Settings</button>
-  </div>
-
-  <div class="main">
-
-    <div class="topbar">
-      <h1>Attendance Dashboard</h1>
-      <p class="small">Modern SaaS Control Panel</p>
-    </div>
-
-    <select id="classSelect" onchange="loadStudents()"></select>
-
-    <div id="students"></div>
-
-  </div>
-
-</div>
-<script>
-
-/* ================= PASSWORDS ================= */
 const subjectPasswords = {
   MATHEMATICS:"mat12",
   ENGLISH:"engl12",
@@ -258,7 +37,6 @@ const subjectPasswords = {
 
 window.currentSubject = null;
 
-/* ================= LOGIN ================= */
 window.loginTeacher = function(){
 
   const subject = document.getElementById("subjectLogin").value;
@@ -271,26 +49,21 @@ window.loginTeacher = function(){
 
   window.currentSubject = subject;
 
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("app").style.display = "block";
+  document.getElementById("loginBox").style.display="none";
+  document.getElementById("app").style.display="block";
 };
 
 /* ================= CLASSES ================= */
 window.onload = function(){
-
   const select = document.getElementById("classSelect");
 
-  const classes = [
-    "P1","P2","P3","P4","P5","P6",
-    "S1","S2","S3","S4","S5","S6"
-  ];
-
-  classes.forEach(c=>{
+  ["P1","P2","P3","P4","P5","P6","S1","S2","S3","S4","S5","S6"]
+  .forEach(c=>{
     select.innerHTML += `<option>${c}</option>`;
   });
 };
 
-/* ================= DEMO STUDENTS ================= */
+/* ================= LOAD STUDENTS (FIXED) ================= */
 window.loadStudents = async function(){
 
   const cls = document.getElementById("classSelect").value;
@@ -327,12 +100,98 @@ window.loadStudents = async function(){
   });
 
   if(found === 0){
-    box.innerHTML = `
-      <p class="small">No students found in ${cls}</p>
-    `;
+    box.innerHTML = `<p class="small">No students found in ${cls}</p>`;
   }
 };
+
 </script>
+
+<style>
+
+/* SAME SAAS UI */
+body{margin:0;font-family:Segoe UI;background:#0a0f1f;color:white}
+
+#loginBox{
+  height:100vh;display:flex;justify-content:center;align-items:center;
+  background:linear-gradient(-45deg,#0f172a,#1e3a8a,#0ea5e9,#111827);
+}
+
+.loginCard{
+  width:320px;padding:25px;border-radius:15px;
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(15px);
+  text-align:center;
+}
+
+select,input,button{
+  width:100%;padding:10px;margin:6px 0;border:none;border-radius:8px;
+}
+
+button{background:#0ea5e9;color:white;cursor:pointer}
+
+#app{display:none}
+
+.sidebar{
+  width:220px;height:100vh;position:fixed;
+  background:#111827;padding:20px;
+}
+
+.main{margin-left:240px;padding:20px}
+
+.card{
+  background:#111827;padding:15px;margin:10px 0;
+  border-radius:10px;display:flex;justify-content:space-between;
+}
+
+.present{background:green;color:white}
+.absent{background:red;color:white}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginBox">
+  <div class="loginCard">
+    <h2>Teacher Login</h2>
+
+    <select id="subjectLogin">
+      <option>MATHEMATICS</option>
+      <option>ENGLISH</option>
+      <option>SCIENCE</option>
+      <option>PHYSICS</option>
+      <option>CHEMISTRY</option>
+      <option>BIOLOGY</option>
+      <option>COMPUTER SCIENCE</option>
+    </select>
+
+    <input type="password" id="password" placeholder="Password">
+
+    <button onclick="loginTeacher()">Login</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="app">
+
+  <div class="sidebar">
+    <h3>📊 MIS</h3>
+    <button onclick="loadStudents()">Students</button>
+  </div>
+
+  <div class="main">
+
+    <h2>Attendance Dashboard</h2>
+
+    <select id="classSelect" onchange="loadStudents()"></select>
+
+    <div id="students"></div>
+
+  </div>
+
+</div>
 
 </body>
 </html>
