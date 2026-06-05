@@ -68,7 +68,7 @@ window.onload = function(){
 window.loadStudents = async function () {
 
   const cls = document.getElementById("classSelect").value;
-  const box = document.getElementById("students");
+  const box = document.getElementById("attendanceTable");
 
   box.innerHTML = "";
 
@@ -76,37 +76,64 @@ window.loadStudents = async function () {
 
   const snap = await getDocs(collection(db, "classStudents"));
 
-  let found = false;
+  let html = `
+  <table class="table">
+    <tr>
+      <th>Student</th>
+      <th>Class</th>
+      <th>✔ Present</th>
+    </tr>
+  `;
 
   snap.forEach(docSnap => {
     const s = docSnap.data();
 
     if (s.class === cls) {
-      found = true;
 
-      box.innerHTML += `
-        <div class="card">
-          <div>
-            <b>${s.name}</b><br>
-            <span class="small">${s.class} - ${window.currentSubject}</span>
-          </div>
-
-          <div>
-            <button onclick="mark('${s.name}','Present','${cls}')" class="present">Present</button>
-            <button onclick="mark('${s.name}','Absent','${cls}')" class="absent">Absent</button>
-          </div>
-        </div>
+      html += `
+        <tr class="rowHover">
+          <td>${s.name}</td>
+          <td>${s.class}</td>
+          <td>
+            <input type="checkbox"
+              class="checkbox"
+              onchange="toggleAttendance('${s.name}', this.checked)">
+          </td>
+        </tr>
       `;
     }
   });
 
-  if (!found) {
-    box.innerHTML = `<p>No students found in ${cls}</p>`;
+  html += `</table>`;
+
+  box.innerHTML = html;
+};
+  window.toggleAttendance = function(name, isChecked){
+
+  tempAttendance[name] = isChecked ? "Present" : "Absent";
+};
+
+  window.submitAttendance = async function(){
+
+  const cls = document.getElementById("classSelect").value;
+
+  for (let name in tempAttendance) {
+
+    await addDoc(collection(db,"attendance"),{
+      name,
+      class: cls,
+      subject: window.currentSubject,
+      status: tempAttendance[name],
+      date: new Date().toISOString().split("T")[0]
+    });
   }
+
+  alert("Attendance Submitted ✔");
+
+  tempAttendance = {};
 
   loadSummary(cls);
 };
-
 /* ================= MARK ATTENDANCE ================= */
 window.mark = async function(name, status, cls){
 
@@ -199,6 +226,39 @@ button{cursor:pointer}
 
 .present{background:green;color:white}
 .absent{background:red;color:white}
+  .table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #111827;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.table th, .table td {
+  padding: 14px;
+  border-bottom: 1px solid #1f2937;
+}
+
+.checkbox {
+  transform: scale(1.4);
+  cursor: pointer;
+}
+
+.submitBtn {
+  margin-top: 15px;
+  width: 100%;
+  padding: 12px;
+  background: #0ea5e9;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+}
+
+.rowHover:hover {
+  background: #1f2937;
+}
 
 </style>
 
@@ -243,7 +303,13 @@ button{cursor:pointer}
 
     <div id="students"></div>
 
-    <div id="summary"></div>
+   <div id="attendanceTable"></div>
+
+<button onclick="submitAttendance()" class="submitBtn">
+  SUBMIT ATTENDANCE
+</button>
+
+<div id="summary"></div>
 
   </div>
 
