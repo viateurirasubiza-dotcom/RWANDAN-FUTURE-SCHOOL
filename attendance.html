@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance System | RWANDAN FUTURE MIS</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      padding: 20px;
+      background: #050510;
+      color: white;
+    }
+
+    h2 {
+      text-align: center;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+    }
+
+    .box {
+      max-width: 800px;
+      margin: auto;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px #00ffff33;
+    }
+
+    select, button {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      cursor: pointer;
+      background: linear-gradient(90deg, #00ffff, #ff00ff);
+      color: white;
+      font-weight: bold;
+    }
+
+    .student {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.08);
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 10px;
+    }
+
+    .student select {
+      background: #111;
+      color: white;
+    }
+
+    .top-bar {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <h2>📋 Attendance System</h2>
+
+  <div class="box">
+
+    <div class="top-bar">
+
+      <select id="classSelect">
+        <option value="">Select Class</option>
+        <option>P1</option>
+        <option>P2</option>
+        <option>P3</option>
+        <option>P4</option>
+        <option>P5</option>
+        <option>P6</option>
+        <option>S1</option>
+        <option>S2</option>
+        <option>S3</option>
+        <option>S4</option>
+        <option>S5</option>
+        <option>S6</option>
+      </select>
+
+      <button onclick="loadStudents()">Load Students</button>
+      <button onclick="saveAttendance()">Save Attendance</button>
+
+    </div>
+
+    <div id="attendanceBox"></div>
+
+  </div>
+
+  <!-- FIREBASE -->
+  <script type="module">
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      addDoc
+    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSy....",
+      authDomain: "neomis-77b36.firebaseapp.com",
+      projectId: "neomis-77b36",
+      storageBucket: "neomis-77b36.firebasestorage.app",
+      messagingSenderId: "836047126207",
+      appId: "1:836047126207:web:df890a577383585698100a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ================= LOAD STUDENTS =================
+    window.loadStudents = async function () {
+
+      let cls = document.getElementById("classSelect").value;
+      if (!cls) return alert("Select class first");
+
+      const snap = await getDocs(collection(db, "classStudents"));
+
+      let students = [];
+
+      snap.forEach(d => {
+        let s = d.data();
+        if (s.class === cls) {
+          students.push(s.name);
+        }
+      });
+
+      let html = "";
+
+      students.forEach((name, i) => {
+        html += `
+          <div class="student">
+            <span>${name}</span>
+
+            <select id="att_${i}">
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+              <option value="Late">Late</option>
+            </select>
+          </div>
+        `;
+      });
+
+      document.getElementById("attendanceBox").innerHTML = html;
+    };
+
+    // ================= SAVE ATTENDANCE =================
+    window.saveAttendance = async function () {
+
+      let cls = document.getElementById("classSelect").value;
+      if (!cls) return alert("Select class");
+
+      const snap = await getDocs(collection(db, "classStudents"));
+
+      let students = [];
+
+      snap.forEach(d => {
+        let s = d.data();
+        if (s.class === cls) {
+          students.push(s.name);
+        }
+      });
+
+      let records = {};
+
+      students.forEach((name, i) => {
+        let status = document.getElementById(`att_${i}`).value;
+        records[name] = status;
+      });
+
+      await addDoc(collection(db, "attendance"), {
+        class: cls,
+        date: new Date().toISOString().split("T")[0],
+        records,
+        createdAt: Date.now()
+      });
+
+      alert("Attendance saved ✔");
+    };
+
+  </script>
+
+</body>
+</html>
