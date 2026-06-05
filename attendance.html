@@ -4,13 +4,16 @@
 <title>Attendance SaaS Pro</title>
 
 <style>
-/* FULL SCREEN BACKGROUND */
+
+/* ================= GLOBAL ================= */
 body{
   margin:0;
   font-family: 'Segoe UI', sans-serif;
+  background:#0a0f1f;
+  color:white;
 }
 
-/* LOGIN CONTAINER */
+/* ================= LOGIN ================= */
 #loginBox{
   height:100vh;
   display:flex;
@@ -21,14 +24,12 @@ body{
   animation: gradientBG 10s ease infinite;
 }
 
-/* ANIMATION BACKGROUND */
 @keyframes gradientBG {
   0%{background-position:0% 50%}
   50%{background-position:100% 50%}
   100%{background-position:0% 50%}
 }
 
-/* LOGIN CARD */
 .loginCard{
   width:320px;
   background: rgba(255,255,255,0.08);
@@ -36,31 +37,16 @@ body{
   padding:30px;
   border-radius:16px;
   text-align:center;
-  color:white;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  box-shadow:0 10px 40px rgba(0,0,0,0.4);
   border:1px solid rgba(255,255,255,0.1);
-  animation: pop 0.6s ease;
+  animation: pop 0.5s ease;
 }
 
-/* POP ANIMATION */
 @keyframes pop{
   from{transform:scale(0.8); opacity:0}
   to{transform:scale(1); opacity:1}
 }
 
-/* TITLE */
-.loginCard h2{
-  margin:10px 0 5px;
-}
-
-/* SUBTITLE */
-.subtitle{
-  font-size:12px;
-  opacity:0.7;
-  margin-bottom:20px;
-}
-
-/* INPUTS */
 .loginCard select,
 .loginCard input{
   width:100%;
@@ -68,44 +54,94 @@ body{
   margin:8px 0;
   border:none;
   border-radius:10px;
-  outline:none;
-  background: rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.15);
   color:white;
 }
 
-/* PLACEHOLDER */
-.loginCard input::placeholder{
-  color:#ddd;
-}
-
-/* BUTTON */
 .loginCard button{
   width:100%;
   padding:12px;
-  margin-top:10px;
   border:none;
   border-radius:10px;
-  background: linear-gradient(90deg,#0ea5e9,#2563eb);
+  background:linear-gradient(90deg,#0ea5e9,#2563eb);
   color:white;
   font-weight:bold;
   cursor:pointer;
-  transition:0.3s;
 }
 
-.loginCard button:hover{
-  transform: scale(1.05);
+/* ================= APP ================= */
+#app{
+  display:none;
+  min-height:100vh;
 }
 
-/* LOGO */
-.logo{
-  font-size:40px;
+/* ================= SIDEBAR ================= */
+.sidebar{
+  width:230px;
+  background:#111827;
+  height:100vh;
+  position:fixed;
+  left:0;
+  top:0;
+  padding:20px;
 }
+
+/* ================= MAIN ================= */
+.main{
+  margin-left:250px;
+  padding:20px;
+  min-height:100vh;
+  background:#0a0f1f;
+}
+
+/* ================= CARDS ================= */
+.card{
+  background:#111827;
+  padding:15px;
+  margin:10px 0;
+  border-radius:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border:1px solid #1f2937;
+}
+
+/* BUTTONS */
+.present{
+  background:#16a34a;
+  color:white;
+  border:none;
+  padding:8px 12px;
+  border-radius:8px;
+}
+
+.absent{
+  background:#dc2626;
+  color:white;
+  border:none;
+  padding:8px 12px;
+  border-radius:8px;
+}
+
+/* TOPBAR */
+.topbar{
+  background:#111827;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:15px;
+}
+
+.small{
+  font-size:12px;
+  opacity:0.7;
+}
+
 </style>
 </head>
 
 <body>
 
-<!-- ================= LOGIN UI ================= -->
+<!-- ================= LOGIN ================= -->
 <div id="loginBox">
 
   <div class="loginCard">
@@ -133,7 +169,6 @@ body{
 <!-- ================= DASHBOARD ================= -->
 <div id="app">
 
-  <!-- SIDEBAR -->
   <div class="sidebar">
     <h2>📊 SaaS MIS</h2>
     <p class="small">Attendance System</p>
@@ -141,7 +176,6 @@ body{
     <button onclick="loadStudents()">👨‍🎓 Students</button>
   </div>
 
-  <!-- MAIN -->
   <div class="main">
 
     <div class="topbar">
@@ -158,7 +192,7 @@ body{
 
 <script>
 
-/* ================= SUBJECT PASSWORDS ================= */
+/* ================= PASSWORDS ================= */
 const subjectPasswords = {
   MATHEMATICS:"mat12",
   ENGLISH:"engl12",
@@ -184,37 +218,41 @@ window.loginTeacher = function(){
 
   window.currentSubject = subject;
 
-  document.getElementById("loginBox").style.display="none";
-  document.getElementById("app").style.display="block";
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("app").style.display = "block";
 };
 
 /* ================= CLASSES ================= */
 window.onload = function(){
+
   const select = document.getElementById("classSelect");
 
-  const classes = ["P1","P2","P3","P4","P5","P6","S1","S2","S3","S4","S5","S6"];
+  const classes = [
+    "P1","P2","P3","P4","P5","P6",
+    "S1","S2","S3","S4","S5","S6"
+  ];
 
   classes.forEach(c=>{
     select.innerHTML += `<option>${c}</option>`;
   });
 };
 
-/* ================= STUDENTS DEMO ================= */
+/* ================= DEMO STUDENTS ================= */
 window.loadStudents = function(){
 
-  const box = document.getElementById("students");
   const cls = document.getElementById("classSelect").value;
+  const box = document.getElementById("students");
 
   box.innerHTML = "";
 
   if(!cls) return;
 
-  for(let i=1;i<=5;i++){
+  for(let i=1;i<=6;i++){
     box.innerHTML += `
       <div class="card">
         <div>
           <b>Student ${i}</b><br>
-          <span class="small">${cls}</span>
+          <span class="small">${cls} - ${window.currentSubject}</span>
         </div>
 
         <div>
