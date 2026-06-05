@@ -198,37 +198,42 @@ window.loadSummary = async function (cls) {
         data[a.name] = {};
       }
 
-      if (!data[a.name][a.subject]) {
-        data[a.name][a.subject] = { P: 0, A: 0 };
-      }
-
-      if (a.status === "Present") {
-        data[a.name][a.subject].P++;
-      } else {
-        data[a.name][a.subject].A++;
-      }
+      // store LAST status (not only count)
+      data[a.name][a.subject] = a.status === "Present" ? "✔ Present" : "❌ Absent";
     }
   });
 
-  let html = "<h3>📊 Attendance Summary (By Subject)</h3>";
+  let html = "<h3>📊 Student Attendance Summary (Latest Status)</h3>";
+
+  html += `
+    <table class="table">
+      <tr>
+        <th>Student</th>
+        <th>Mathematics</th>
+        <th>English</th>
+        <th>Science</th>
+        <th>Physics</th>
+        <th>Chemistry</th>
+        <th>Biology</th>
+        <th>Computer</th>
+      </tr>
+  `;
 
   Object.keys(data).forEach(name => {
 
-    html += `<div class="card"><b>${name}</b><br>`;
-
-    Object.keys(data[name]).forEach(subject => {
-
-      html += `
-        <div style="margin-left:15px; margin-top:5px;">
-          📘 ${subject} → 
-          <span style="color:lightgreen">✔ ${data[name][subject].P}</span> |
-          <span style="color:red">✖ ${data[name][subject].A}</span>
-        </div>
-      `;
-    });
-
-    html += `</div>`;
+    html += `<tr>
+      <td><b>${name}</b></td>
+      <td>${data[name]["MATHEMATICS"] || "-"}</td>
+      <td>${data[name]["ENGLISH"] || "-"}</td>
+      <td>${data[name]["SCIENCE"] || "-"}</td>
+      <td>${data[name]["PHYSICS"] || "-"}</td>
+      <td>${data[name]["CHEMISTRY"] || "-"}</td>
+      <td>${data[name]["BIOLOGY"] || "-"}</td>
+      <td>${data[name]["COMPUTER SCIENCE"] || "-"}</td>
+    </tr>`;
   });
+
+  html += `</table>`;
 
   box.innerHTML = html;
 };
