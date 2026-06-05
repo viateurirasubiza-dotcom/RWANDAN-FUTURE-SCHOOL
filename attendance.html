@@ -180,38 +180,54 @@ window.mark = async function(name, status, cls){
 };
 
 /* ================= SUMMARY ================= */
-window.loadSummary = async function(cls){
+window.loadSummary = async function (cls) {
 
   const box = document.getElementById("summary");
-  if(!box) return;
+  if (!box) return;
 
-  const snap = await getDocs(collection(db,"attendance"));
+  const snap = await getDocs(collection(db, "attendance"));
 
   let data = {};
 
-  snap.forEach(d=>{
+  snap.forEach(d => {
     let a = d.data();
 
-    if(a.class === cls && a.subject === window.currentSubject){
+    if (a.class === cls) {
 
-      if(!data[a.name]){
-        data[a.name] = {P:0,A:0};
+      if (!data[a.name]) {
+        data[a.name] = {};
       }
 
-      if(a.status==="Present") data[a.name].P++;
-      else data[a.name].A++;
+      if (!data[a.name][a.subject]) {
+        data[a.name][a.subject] = { P: 0, A: 0 };
+      }
+
+      if (a.status === "Present") {
+        data[a.name][a.subject].P++;
+      } else {
+        data[a.name][a.subject].A++;
+      }
     }
   });
 
-  let html = "<h3>📊 Summary</h3>";
+  let html = "<h3>📊 Attendance Summary (By Subject)</h3>";
 
-  Object.keys(data).forEach(name=>{
-    html += `
-      <div class="card">
-        <b>${name}</b>
-        <span>✅ ${data[name].P} | ❌ ${data[name].A}</span>
-      </div>
-    `;
+  Object.keys(data).forEach(name => {
+
+    html += `<div class="card"><b>${name}</b><br>`;
+
+    Object.keys(data[name]).forEach(subject => {
+
+      html += `
+        <div style="margin-left:15px; margin-top:5px;">
+          📘 ${subject} → 
+          <span style="color:lightgreen">✔ ${data[name][subject].P}</span> |
+          <span style="color:red">✖ ${data[name][subject].A}</span>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
   });
 
   box.innerHTML = html;
