@@ -2198,32 +2198,71 @@ window.loadClassStudents = async function () {
     box.remove();
   }, 4000);
 };
-  window.deleteClassStudent = async function(id) {
+window.deleteClassStudent = async function(id) {
 
   try {
 
     if (!confirm("Delete this student?")) return;
 
-    await deleteDoc(
-      doc(db, "classStudents", id)
-    );
+    // 🔥 1. Get student first (to know class/name)
+    const snap = await getDoc(doc(db, "classStudents", id));
 
-    alert("Student deleted ✔");
+    if (!snap.exists()) return;
 
+    const data = snap.data();
+
+    // 🔥 2. Delete from Firestore
+    await deleteDoc(doc(db, "classStudents", id));
+
+    // 🔥 3. REMOVE from local cache
+    if (window.classStudents?.[data.class]) {
+      window.classStudents[data.class] =
+        window.classStudents[data.class].filter(n => n !== data.name);
+    }
+
+    localStorage.setItem("classStudents", JSON.stringify(window.classStudents));
+
+    // 🔥 4. Refresh UI
     window.loadClassStudents();
 
     if (typeof window.filterTeacherSubject === "function") {
       window.filterTeacherSubject();
     }
 
-  } catch (err) {
+    alert("Student deleted ✔");
 
+  } catch (err) {
     console.error(err);
     alert("Delete failed");
-
   }
 
 };
+  window.listenClassStudents = function () {
+  onSnapshot(collection(db, "classStudents"), (snap) => {
+
+    let grouped = {};
+
+    snap.forEach(d => {
+      const s = d.data();
+
+      if (!grouped[s.class]) grouped[s.class] = [];
+      grouped[s.class].push(s.name);
+    });
+
+    window.classStudents = grouped;
+    localStorage.setItem("classStudents", JSON.stringify(grouped));
+
+    // auto refresh teacher view
+    if (typeof window.filterTeacherSubject === "function") {
+      window.filterTeacherSubject();
+    }
+
+  });
+};
+
+window.addEventListener("DOMContentLoaded", () => {
+  window.listenClassStudents();
+});
   window.listenNotifications = function () {
 
   const q = collection(db, "notifications");
