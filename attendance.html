@@ -161,6 +161,9 @@ window.loadStudents = async function () {
 
   loadSummary(cls);
 };
+  window.closeProfile = function () {
+  document.getElementById("profileModal").style.display = "none";
+};
 window.mark = async function(name, status, cls){
 
   await addDoc(collection(db,"attendance"),{
@@ -389,8 +392,6 @@ button{cursor:pointer}
   <div class="sidebar">
     <h3>📊 MIS</h3>
     <button onclick="loadStudents()">Students</button>
-    
-</button>
   </div>
 
   <div class="main">
