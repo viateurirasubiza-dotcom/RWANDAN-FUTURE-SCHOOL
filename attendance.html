@@ -130,7 +130,7 @@ window.loadStudents = async function () {
   console.log("TEMP:", window.tempAttendance);
 };
 
- window.submitAttendance = async function(){
+window.submitAttendance = async function () {
 
   const cls = document.getElementById("classSelect").value;
 
@@ -144,19 +144,47 @@ window.loadStudents = async function () {
     return;
   }
 
+  const today = new Date();
+
+  const week = Math.ceil(today.getDate() / 7);
+
+  let day = today.getDay();
+
+  if (day === 0 || day === 6) {
+    alert("Weekend not allowed!");
+    return;
+  }
+
+  const dayMap = {
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5
+  };
+
+  day = dayMap[day];
+
   for (let name in window.tempAttendance) {
 
-    await addDoc(collection(db,"attendance"),{
+    await addDoc(collection(db, "attendance"), {
       name,
       class: cls,
       subject: window.currentSubject,
       status: window.tempAttendance[name],
-      date: new Date().toISOString().split("T")[0]
+      date: today.toISOString().split("T")[0],
+      week,
+      day
     });
   }
 
   alert("Attendance Submitted ✔");
+};
 
+  window.tempAttendance = {};
+
+  loadSummary(cls);
+};
   window.tempAttendance = {}; // RESET
 
   loadSummary(cls);
@@ -194,46 +222,54 @@ window.loadSummary = async function (cls) {
 
     if (a.class === cls) {
 
-      if (!data[a.name]) {
-        data[a.name] = {};
+      const key = `${a.name}_${a.subject}_W${a.week}`;
+
+      if (!data[key]) {
+        data[key] = {
+          name: a.name,
+          subject: a.subject,
+          week: a.week,
+          days: {}
+        };
       }
 
-      // store LAST status (not only count)
-      data[a.name][a.subject] = a.status === "Present" ? "✔ Present" : "❌ Absent";
+      data[key].days[a.day] = a.status === "Present" ? "✔" : "❌";
     }
   });
 
-  let html = "<h3>📊 Student Attendance Summary (Latest Status)</h3>";
+  let html = "<h3>📊 Weekly Attendance (Days 1–5)</h3>";
 
   html += `
-    <table class="table">
-      <tr>
-        <th>Student</th>
-        <th>Mathematics</th>
-        <th>English</th>
-        <th>Science</th>
-        <th>Physics</th>
-        <th>Chemistry</th>
-        <th>Biology</th>
-        <th>Computer</th>
-      </tr>
+  <table class="table">
+    <tr>
+      <th>Student</th>
+      <th>Subject</th>
+      <th>Week</th>
+      <th>Day 1</th>
+      <th>Day 2</th>
+      <th>Day 3</th>
+      <th>Day 4</th>
+      <th>Day 5</th>
+    </tr>
   `;
 
-  Object.keys(data).forEach(name => {
+  Object.values(data).forEach(d => {
 
-    html += `<tr>
-      <td><b>${name}</b></td>
-      <td>${data[name]["MATHEMATICS"] || "-"}</td>
-      <td>${data[name]["ENGLISH"] || "-"}</td>
-      <td>${data[name]["SCIENCE"] || "-"}</td>
-      <td>${data[name]["PHYSICS"] || "-"}</td>
-      <td>${data[name]["CHEMISTRY"] || "-"}</td>
-      <td>${data[name]["BIOLOGY"] || "-"}</td>
-      <td>${data[name]["COMPUTER SCIENCE"] || "-"}</td>
-    </tr>`;
+    html += `
+      <tr>
+        <td>${d.name}</td>
+        <td>${d.subject}</td>
+        <td>${d.week}</td>
+        <td>${d.days[1] || "-"}</td>
+        <td>${d.days[2] || "-"}</td>
+        <td>${d.days[3] || "-"}</td>
+        <td>${d.days[4] || "-"}</td>
+        <td>${d.days[5] || "-"}</td>
+      </tr>
+    `;
   });
 
-  html += `</table>`;
+  html += "</table>";
 
   box.innerHTML = html;
 };
