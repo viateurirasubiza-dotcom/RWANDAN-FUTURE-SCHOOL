@@ -150,25 +150,29 @@ window.openFile = function(id){
 /* AUTO UPLOAD */
 document.getElementById("file1").addEventListener("change", () => upload("file1","img1","librarian"));
 document.getElementById("file2").addEventListener("change", () => upload("file2","img2","dean"));
-
 async function upload(fileId, imgId, name){
 
   const input = document.getElementById(fileId);
   const file = input.files[0];
 
-  // 🔥 CHECK FILE
   if(!file){
     alert("Choose image first ❗");
     return;
   }
 
+  console.log("Uploading file:", file.name);
+
   try{
 
     const storageRef = ref(storage, "campusconnect/" + name + ".jpg");
 
+    console.log("Uploading to:", storageRef.fullPath);
+
     await uploadBytes(storageRef, file);
 
     const url = await getDownloadURL(storageRef);
+
+    console.log("Download URL:", url);
 
     document.getElementById(imgId).src = url;
 
@@ -176,7 +180,7 @@ async function upload(fileId, imgId, name){
 
   } catch(error){
     console.log("UPLOAD ERROR:", error);
-    alert("Upload failed ❌ Check console");
+    alert(error.message);
   }
 }
 
