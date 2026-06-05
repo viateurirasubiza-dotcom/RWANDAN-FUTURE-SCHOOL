@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Attendance System</title>
+  <title>Attendance Dashboard</title>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
@@ -9,7 +11,9 @@
       getFirestore,
       collection,
       addDoc,
-      getDocs
+      getDocs,
+      doc,
+      setDoc
     } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -23,67 +27,156 @@
 
     window.db = db;
 
-    // LOAD STUDENTS
+    // ================= LOAD STUDENTS =================
     window.loadStudents = async function () {
 
       const cls = document.getElementById("classSelect").value;
-      const container = document.getElementById("list");
+      const box = document.getElementById("students");
 
-      container.innerHTML = "";
+      box.innerHTML = "";
 
       const snap = await getDocs(collection(db, "classStudents"));
 
-      snap.forEach(doc => {
-        const s = doc.data();
+      snap.forEach(d => {
+        const s = d.data();
 
         if (s.class === cls) {
 
-          container.innerHTML += `
+          box.innerHTML += `
             <div class="card">
               <h3>${s.name}</h3>
 
-              <button class="present" onclick="mark('${s.name}','Present')">Present</button>
-              <button class="absent" onclick="mark('${s.name}','Absent')">Absent</button>
+              <button onclick="mark('${s.name}','Present')">Present</button>
+              <button onclick="mark('${s.name}','Absent')">Absent</button>
             </div>
           `;
         }
       });
+
+      loadSummary(cls);
     };
 
-    // MARK ATTENDANCE
+    // ================= MARK ATTENDANCE =================
     window.mark = async function (name, status) {
 
       const cls = document.getElementById("classSelect").value;
+      const today = new Date().toISOString().split("T")[0];
 
       await addDoc(collection(db, "attendance"), {
         name,
         class: cls,
         status,
-        date: new Date().toISOString().split("T")[0],
+        date: today,
         timestamp: Date.now()
       });
 
-      alert(name + " marked " + status);
+      await updateSummary(name, cls);
+
+      alert(name + " → " + status);
+
+      if (status === "Absent") {
+        console.log("📩 SMS hook here (parent alert)");
+      }
     };
 
-    // VIEW HISTORY
-    window.viewHistory = async function () {
+    // ================= UPDATE SUMMARY =================
+    async function updateSummary(name, cls) {
 
       const snap = await getDocs(collection(db, "attendance"));
 
-      let html = "<h2>Attendance History</h2>";
+      let present = 0;
+      let absent = 0;
 
       snap.forEach(d => {
         const a = d.data();
 
-        html += `
-          <div class="history">
-            ${a.date} | ${a.name} | ${a.class} | ${a.status}
-          </div>
-        `;
+        if (a.name === name && a.class === cls) {
+          if (a.status === "Present") present++;
+          else absent++;
+        }
       });
 
-      document.getElementById("history").innerHTML = html;
+      const total = present + absent;
+      const percentage = total === 0 ? 0 : Math.round((present / total) * 100);
+
+      await setDoc(doc(db, "attendanceSummary", name + "_" + cls), {
+        name,
+        class: cls,
+        present,
+        absent,
+        total,
+        percentage
+      });
+    }
+
+    // ================= LOAD SUMMARY =================
+    window.loadSummary = async function (cls) {
+
+      const snap = await getDocs(collection(db, "attendanceSummary"));
+
+      let html = "";
+
+      snap.forEach(d => {
+        const s = d.data();
+
+        if (s.class === cls) {
+
+          html += `
+            <div class="summary">
+              <h3>${s.name}</h3>
+              <p>✅ Present: ${s.present}</p>
+              <p>❌ Absent: ${s.absent}</p>
+              <p>📊 ${s.percentage}%</p>
+
+              <button onclick="viewProfile('${s.name}','${s.class}')">
+                View Profile
+              </button>
+            </div>
+          `;
+        }
+      });
+
+      document.getElementById("summary").innerHTML = html;
+    };
+
+    // ================= PROFILE =================
+    window.viewProfile = async function (name, cls) {
+
+      const snap = await getDocs(collection(db, "attendance"));
+
+      let html = `<h2>${name} Attendance History</h2>`;
+
+      snap.forEach(d => {
+        const a = d.data();
+
+        if (a.name === name && a.class === cls) {
+          html += `
+            <div class="history">
+              ${a.date} → ${a.status}
+            </div>
+          `;
+        }
+      });
+
+      document.getElementById("students").innerHTML = html;
+    };
+
+    // ================= QR SCANNER =================
+    window.openQR = function () {
+
+      const scanner = new Html5Qrcode("qr");
+
+      scanner.start(
+        { facingMode: "environment" },
+        { fps: 10 },
+        async (text) => {
+
+          await mark(text, "Present");
+
+          scanner.stop();
+
+        }
+      );
     };
 
   </script>
@@ -91,14 +184,12 @@
   <style>
     body{
       font-family:Arial;
-      background:#0a0a1a;
+      background:#0b0b1a;
       color:white;
       padding:20px;
     }
 
-    h1{
-      color:#00ffff;
-    }
+    h1{ color:#00ffff; }
 
     select,button{
       padding:10px;
@@ -113,52 +204,50 @@
       border:1px solid #00ffff;
     }
 
-    .present{
-      background:green;
-      color:white;
-      padding:8px;
-      margin:5px;
-    }
-
-    .absent{
-      background:red;
-      color:white;
-      padding:8px;
-      margin:5px;
+    .summary{
+      background:#1a1a1a;
+      padding:10px;
+      margin:10px;
+      border-left:4px solid #00ffff;
+      border-radius:8px;
     }
 
     .history{
       background:#222;
-      padding:8px;
+      padding:5px;
       margin:5px;
-      border-left:3px solid #00ffff;
+      border-radius:5px;
+    }
+
+    #qr{
+      margin-top:10px;
     }
   </style>
 </head>
 
 <body>
 
-<h1>📋 Attendance System</h1>
+<h1>📋 Attendance Dashboard</h1>
 
 <select id="classSelect" onchange="loadStudents()">
   <option value="">Select Class</option>
-  <option>P1</option>
-  <option>P2</option>
-  <option>P3</option>
-  <option>P4</option>
-  <option>P5</option>
-  <option>P6</option>
-  <option>S1</option>
-  <option>S2</option>
+  <option>P1</option><option>P2</option><option>P3</option>
+  <option>P4</option><option>P5</option><option>P6</option>
+  <option>S1</option><option>S2</option><option>S3</option>
 </select>
 
-<button onclick="viewHistory()">View Attendance History</button>
+<button onclick="openQR()">📷 QR Scanner</button>
 
 <hr>
 
-<div id="list"></div>
+<div id="students"></div>
 
-<div id="history"></div>
+<hr>
+
+<h2>📊 Attendance Summary</h2>
+<div id="summary"></div>
+
+<div id="qr"></div>
 
 </body>
 </html>
