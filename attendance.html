@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Attendance Dashboard</title>
+  <title>Attendance SaaS Dashboard</title>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
 
@@ -33,6 +33,8 @@
       const cls = document.getElementById("classSelect").value;
       const box = document.getElementById("students");
 
+      if (!cls) return;
+
       box.innerHTML = "";
 
       const snap = await getDocs(collection(db, "classStudents"));
@@ -41,13 +43,17 @@
         const s = d.data();
 
         if (s.class === cls) {
-
           box.innerHTML += `
             <div class="card">
-              <h3>${s.name}</h3>
+              <div>
+                <h3>${s.name}</h3>
+                <small>${s.class}</small>
+              </div>
 
-              <button onclick="mark('${s.name}','Present')">Present</button>
-              <button onclick="mark('${s.name}','Absent')">Absent</button>
+              <div class="btns">
+                <button class="present" onclick="mark('${s.name}','Present')">Present</button>
+                <button class="absent" onclick="mark('${s.name}','Absent')">Absent</button>
+              </div>
             </div>
           `;
         }
@@ -56,7 +62,7 @@
       loadSummary(cls);
     };
 
-    // ================= MARK ATTENDANCE =================
+    // ================= MARK =================
     window.mark = async function (name, status) {
 
       const cls = document.getElementById("classSelect").value;
@@ -71,15 +77,12 @@
       });
 
       await updateSummary(name, cls);
+      loadSummary(cls);
 
-      alert(name + " → " + status);
-
-      if (status === "Absent") {
-        console.log("📩 SMS hook here (parent alert)");
-      }
+      alert(`${name} → ${status}`);
     };
 
-    // ================= UPDATE SUMMARY =================
+    // ================= SUMMARY =================
     async function updateSummary(name, cls) {
 
       const snap = await getDocs(collection(db, "attendance"));
@@ -89,15 +92,13 @@
 
       snap.forEach(d => {
         const a = d.data();
-
         if (a.name === name && a.class === cls) {
-          if (a.status === "Present") present++;
-          else absent++;
+          a.status === "Present" ? present++ : absent++;
         }
       });
 
       const total = present + absent;
-      const percentage = total === 0 ? 0 : Math.round((present / total) * 100);
+      const percentage = total ? Math.round((present / total) * 100) : 0;
 
       await setDoc(doc(db, "attendanceSummary", name + "_" + cls), {
         name,
@@ -109,7 +110,6 @@
       });
     }
 
-    // ================= LOAD SUMMARY =================
     window.loadSummary = async function (cls) {
 
       const snap = await getDocs(collection(db, "attendanceSummary"));
@@ -120,13 +120,15 @@
         const s = d.data();
 
         if (s.class === cls) {
-
           html += `
-            <div class="summary">
+            <div class="summaryCard">
               <h3>${s.name}</h3>
-              <p>✅ Present: ${s.present}</p>
-              <p>❌ Absent: ${s.absent}</p>
-              <p>📊 ${s.percentage}%</p>
+
+              <div class="stats">
+                <span>✅ ${s.present}</span>
+                <span>❌ ${s.absent}</span>
+                <span>📊 ${s.percentage}%</span>
+              </div>
 
               <button onclick="viewProfile('${s.name}','${s.class}')">
                 View Profile
@@ -144,24 +146,32 @@
 
       const snap = await getDocs(collection(db, "attendance"));
 
-      let html = `<h2>${name} Attendance History</h2>`;
+      let html = `
+        <div class="profile">
+          <h2>👨‍🎓 ${name}</h2>
+          <p>Class: ${cls}</p>
+          <hr/>
+      `;
 
       snap.forEach(d => {
         const a = d.data();
 
         if (a.name === name && a.class === cls) {
           html += `
-            <div class="history">
-              ${a.date} → ${a.status}
+            <div class="historyRow">
+              <span>${a.date}</span>
+              <b>${a.status}</b>
             </div>
           `;
         }
       });
 
+      html += `</div>`;
+
       document.getElementById("students").innerHTML = html;
     };
 
-    // ================= QR SCANNER =================
+    // ================= QR =================
     window.openQR = function () {
 
       const scanner = new Html5Qrcode("qr");
@@ -172,7 +182,6 @@
         async (text) => {
 
           await mark(text, "Present");
-
           scanner.stop();
 
         }
@@ -183,71 +192,148 @@
 
   <style>
     body{
+      margin:0;
       font-family:Arial;
-      background:#0b0b1a;
+      background:#0a0f1f;
       color:white;
-      padding:20px;
+      display:flex;
     }
 
-    h1{ color:#00ffff; }
+    /* SIDEBAR */
+    .sidebar{
+      width:220px;
+      background:#111827;
+      height:100vh;
+      padding:20px;
+      position:fixed;
+    }
+
+    .sidebar h2{
+      color:#00e5ff;
+    }
+
+    .menu button{
+      width:100%;
+      margin-top:10px;
+      padding:10px;
+      border:none;
+      background:#1f2937;
+      color:white;
+      border-radius:8px;
+      cursor:pointer;
+    }
+
+    /* MAIN */
+    .main{
+      margin-left:240px;
+      padding:20px;
+      width:100%;
+    }
+
+    h1{
+      color:#00e5ff;
+    }
 
     select,button{
       padding:10px;
       margin:5px;
-    }
-
-    .card{
-      background:#111;
-      padding:10px;
-      margin:10px;
-      border-radius:10px;
-      border:1px solid #00ffff;
-    }
-
-    .summary{
-      background:#1a1a1a;
-      padding:10px;
-      margin:10px;
-      border-left:4px solid #00ffff;
       border-radius:8px;
+      border:none;
     }
 
-    .history{
-      background:#222;
+    /* STUDENT CARDS */
+    .card{
+      background:#111827;
+      padding:15px;
+      margin:10px;
+      border-radius:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border:1px solid #1f2937;
+    }
+
+    .btns button{
+      margin-left:5px;
+    }
+
+    .present{
+      background:#16a34a;
+      color:white;
+    }
+
+    .absent{
+      background:#dc2626;
+      color:white;
+    }
+
+    /* SUMMARY */
+    .summaryCard{
+      background:#111827;
+      padding:15px;
+      margin:10px;
+      border-radius:12px;
+      border-left:4px solid #00e5ff;
+    }
+
+    .stats span{
+      margin-right:10px;
+    }
+
+    /* PROFILE */
+    .profile{
+      background:#111827;
+      padding:20px;
+      border-radius:12px;
+    }
+
+    .historyRow{
+      display:flex;
+      justify-content:space-between;
       padding:5px;
-      margin:5px;
-      border-radius:5px;
+      border-bottom:1px solid #222;
     }
 
     #qr{
-      margin-top:10px;
+      margin-top:20px;
     }
   </style>
 </head>
 
 <body>
 
-<h1>📋 Attendance Dashboard</h1>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>📊 SaaS MIS</h2>
 
-<select id="classSelect" onchange="loadStudents()">
-  <option value="">Select Class</option>
-  <option>P1</option><option>P2</option><option>P3</option>
-  <option>P4</option><option>P5</option><option>P6</option>
-  <option>S1</option><option>S2</option><option>S3</option>
-</select>
+    <div class="menu">
+      <button onclick="loadStudents()">👨‍🎓 Students</button>
+      <button onclick="openQR()">📷 QR Attendance</button>
+    </div>
+  </div>
 
-<button onclick="openQR()">📷 QR Scanner</button>
+  <!-- MAIN -->
+  <div class="main">
 
-<hr>
+    <h1>Attendance Dashboard</h1>
 
-<div id="students"></div>
+    <select id="classSelect" onchange="loadStudents()">
+      <option value="">Select Class</option>
+      <option>P1</option><option>P2</option><option>P3</option>
+      <option>P4</option><option>P5</option><option>P6</option>
+      <option>S1</option><option>S2</option><option>S3</option>
+    </select>
 
-<hr>
+    <hr/>
 
-<h2>📊 Attendance Summary</h2>
-<div id="summary"></div>
+    <div id="students"></div>
 
-<div id="qr"></div>
+    <h2>📊 Summary</h2>
+    <div id="summary"></div>
+
+    <div id="qr"></div>
+
+  </div>
 
 </body>
 </html>
