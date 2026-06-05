@@ -755,28 +755,36 @@ cursor:pointer;
   <div id="clock"></div>
   
 <button class="menuBtn" onclick="toggleSidebar()">☰</button>
-  <div class="sidebar" id="sidebar">
 
-  <h2>📊 MIS Panel</h2>
+<div class="sidebar" id="sidebar">
 
-  <label>Level</label>
-  <select id="levelSelect" onchange="loadSubjects()">
-    <option value="">Select Level</option>
-    <option value="PRIMARY">PRIMARY</option>
-    <option value="SECONDARY">SECONDARY</option>
-  </select>
+  <div class="sidebar-content">
 
-  <label>Subject</label>
-  <select id="subjectSelect">
-    <option value="">Select Subject</option>
-  </select>
+    <h2>📊 MIS Panel</h2>
 
-  <button class="att-btn" onclick="openAttendance()">
-    📋 Attendance
-  </button>
-     <button class="att-btn" onclick="openStudents()">
-  🎓 Students
-  </button>
+    <label>Level</label>
+    <select id="levelSelect" onchange="loadSubjects()">
+      <option value="">Select Level</option>
+      <option value="PRIMARY">PRIMARY</option>
+      <option value="SECONDARY">SECONDARY</option>
+    </select>
+
+    <label>Subject</label>
+    <select id="subjectSelect">
+      <option value="">Select Subject</option>
+    </select>
+
+    <button class="att-btn" onclick="openAttendance()">
+      📋 Attendance
+    </button>
+
+    <button class="att-btn" onclick="openStudents()">
+      🎓 Students
+    </button>
+
+  </div>
+
+</div>
 
 </div>
 <div class="moving-text">
