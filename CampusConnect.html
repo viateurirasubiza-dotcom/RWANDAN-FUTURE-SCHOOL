@@ -2,86 +2,166 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Campus Connect Firebase</title>
+<title>Campus Connect Pro</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
 body{
   margin:0;
-  font-family:Arial;
-  background:linear-gradient(135deg,#050510,#0a1a2f);
+  font-family: "Segoe UI", Arial;
+  background: radial-gradient(circle at top,#0a1a2f,#050510);
   color:white;
 }
 
+/* HEADER */
 .header{
   text-align:center;
-  padding:20px;
-  background:rgba(0,0,0,0.6);
+  padding:25px;
+  font-size:22px;
+  font-weight:bold;
+  background:rgba(0,0,0,0.5);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(0,255,255,0.2);
 }
 
+/* GRID */
 .container{
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  padding:30px;
-  flex-wrap:wrap;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:25px;
+  padding:40px;
 }
 
+/* CARD */
 .card{
-  width:270px;
-  background:rgba(255,255,255,0.08);
-  border-radius:15px;
-  padding:15px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(0,255,255,0.15);
+  border-radius:20px;
+  padding:20px;
   text-align:center;
-  box-shadow:0 0 15px rgba(0,255,255,0.2);
+  backdrop-filter:blur(12px);
+  transition:0.3s;
+  box-shadow:0 0 15px rgba(0,255,255,0.08);
 }
 
+.card:hover{
+  transform:translateY(-8px);
+  box-shadow:0 0 25px rgba(0,255,255,0.3);
+}
+
+/* IMAGE */
 .card img{
   width:120px;
   height:120px;
   border-radius:50%;
   object-fit:cover;
   border:3px solid #00ffff;
-  margin-bottom:10px;
+  box-shadow:0 0 20px rgba(0,255,255,0.3);
+  transition:0.3s;
 }
 
+.card img:hover{
+  transform:scale(1.05);
+}
+
+/* TEXT */
+.card h3{
+  margin:10px 0 5px;
+  color:#00ffff;
+  letter-spacing:1px;
+}
+
+.card p{
+  margin:4px 0;
+  opacity:0.8;
+  font-size:14px;
+}
+
+/* BUTTONS */
 .btn{
-  margin-top:6px;
-  padding:8px;
+  margin-top:8px;
+  padding:10px;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
   cursor:pointer;
   font-weight:bold;
   width:100%;
+  transition:0.3s;
 }
 
 .chat{background:#25D366;color:white;}
-.call{background:#00ffff;color:black;}
-.email{background:#ff00ff;color:white;}
-.upload{background:#ffcc00;color:black;}
+.call{background:#00c8ff;color:black;}
+.email{background:#ff4dff;color:white;}
 
+.btn:hover{
+  transform:scale(1.05);
+  opacity:0.9;
+}
+
+/* UPLOAD INPUT */
 .hidden{display:none;}
+
+.upload-label{
+  display:block;
+  margin-top:10px;
+  padding:8px;
+  background:linear-gradient(90deg,#00ffff,#ff00ff);
+  border-radius:10px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:bold;
+  transition:0.3s;
+}
+
+.upload-label:hover{
+  transform:scale(1.05);
+  box-shadow:0 0 15px rgba(0,255,255,0.4);
+}
+
+/* SEARCH HEADER EFFECT */
+.search-bar{
+  text-align:center;
+  margin-top:10px;
+}
+
+.search-bar input{
+  padding:10px;
+  width:60%;
+  border-radius:10px;
+  border:none;
+  outline:none;
+}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .search-bar input{width:85%;}
+}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-  <h1>🏫 Campus Connector </h1>
+  🏫 Campus Connect Pro System
+</div>
+
+<div class="search-bar">
+  <input type="text" placeholder="Search staff... 🔍">
 </div>
 
 <div class="container">
 
   <!-- CARD 1 -->
   <div class="card">
-    <img id="img1" src="">
+    <img id="img1">
 
-    <h3>LIBRARIAN</h3>
+    <h3><i class="fa-solid fa-book"></i> LIBRARIAN</h3>
     <p>CHEBET ASUMAN</p>
     <p>📞 +260702573532</p>
 
     <input type="file" id="file1" class="hidden" accept="image/*">
-
-
+    <label class="upload-label" for="file1">📤 Upload Photo</label>
 
     <a href="https://wa.me/260702573532"><button class="btn chat">WhatsApp</button></a>
     <a href="tel:+260702573532"><button class="btn call">Call</button></a>
@@ -90,13 +170,14 @@ body{
 
   <!-- CARD 2 -->
   <div class="card">
-    <img id="img2" src="">
+    <img id="img2">
 
-    <h3>DEAN OF STUDENTS</h3>
+    <h3><i class="fa-solid fa-user-tie"></i> DEAN</h3>
     <p>MUGABO DAVID</p>
     <p>📞 +250789531136</p>
 
     <input type="file" id="file2" class="hidden" accept="image/*">
+    <label class="upload-label" for="file2">📤 Upload Photo</label>
 
     <a href="https://wa.me/250789531136"><button class="btn chat">WhatsApp</button></a>
     <a href="tel:+250789531136"><button class="btn call">Call</button></a>
@@ -108,76 +189,52 @@ body{
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc } 
+import { getFirestore, doc, setDoc, getDoc }
 from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSy....",
   authDomain: "neomis-77b36.firebaseapp.com",
   projectId: "neomis-77b36",
-  appId: "1:836047126207:web:df890a577383585698100a"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* OPEN FILE PICKER */
-window.openFile = function(id){
-  document.getElementById(id).click();
-};
-
-/* CONVERT + UPLOAD (BASE64) */
-async function upload(fileId, imgId, name){
+/* UPLOAD BASE64 */
+function upload(fileId, imgId, name){
 
   const file = document.getElementById(fileId).files[0];
-  if(!file){
-    alert("Choose image first ❗");
-    return;
-  }
+  if(!file) return;
 
   const reader = new FileReader();
 
   reader.onload = async () => {
     const base64 = reader.result;
 
-    // SAVE TO FIRESTORE
-    await setDoc(doc(db, "campusConnect", name), {
+    await setDoc(doc(db,"campusConnect",name),{
       image: base64,
       updatedAt: Date.now()
     });
 
     document.getElementById(imgId).src = base64;
-
-    alert("Upload successful ✔");
   };
 
   reader.readAsDataURL(file);
 }
 
-/* EVENTS */
-document.getElementById("file1").addEventListener("change", () =>
-  upload("file1","img1","librarian")
-);
+document.getElementById("file1").addEventListener("change",()=>upload("file1","img1","librarian"));
+document.getElementById("file2").addEventListener("change",()=>upload("file2","img2","dean"));
 
-document.getElementById("file2").addEventListener("change", () =>
-  upload("file2","img2","dean")
-);
+/* LOAD */
+async function load(){
+  const d1 = await getDoc(doc(db,"campusConnect","librarian"));
+  if(d1.exists()) document.getElementById("img1").src = d1.data().image;
 
-/* LOAD IMAGES FROM FIREBASE */
-async function loadImages(){
-
-  const doc1 = await getDoc(doc(db,"campusConnect","librarian"));
-  if(doc1.exists()){
-    document.getElementById("img1").src = doc1.data().image;
-  }
-
-  const doc2 = await getDoc(doc(db,"campusConnect","dean"));
-  if(doc2.exists()){
-    document.getElementById("img2").src = doc2.data().image;
-  }
+  const d2 = await getDoc(doc(db,"campusConnect","dean"));
+  if(d2.exists()) document.getElementById("img2").src = d2.data().image;
 }
-
-loadImages();
+load();
 
 </script>
 
