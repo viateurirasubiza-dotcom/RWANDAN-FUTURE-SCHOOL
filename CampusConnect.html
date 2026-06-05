@@ -7,140 +7,176 @@
 <style>
 body{
   margin:0;
-  font-family:Segoe UI;
-  background:#0a0f1f;
+  font-family:Arial;
+  background:linear-gradient(135deg,#050510,#0a1a2f);
   color:white;
 }
 
 /* HEADER */
 .header{
-  background:#111827;
-  padding:20px;
   text-align:center;
-  position:sticky;
-  top:0;
+  padding:20px;
+  background:rgba(0,0,0,0.6);
+  box-shadow:0 0 15px #00ffff55;
 }
 
 .header h1{
+  color:#00ffff;
   margin:0;
-  color:#0ea5e9;
+}
+
+/* BACK BUTTON */
+.back-btn{
+  position:fixed;
+  top:15px;
+  left:15px;
+  padding:10px 15px;
+  background:#00ffff;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
 }
 
 /* GRID */
 .container{
-  padding:20px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap:15px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:20px;
+  padding:30px;
 }
 
 /* CARD */
 .card{
-  background:#111827;
-  border-radius:12px;
+  width:260px;
+  background:rgba(255,255,255,0.08);
+  border:1px solid #00ffff55;
+  border-radius:15px;
   padding:15px;
   text-align:center;
+  box-shadow:0 0 15px rgba(0,255,255,0.2);
   transition:0.3s;
 }
 
 .card:hover{
-  transform:scale(1.03);
-  background:#1f2937;
+  transform:translateY(-5px);
+  box-shadow:0 0 25px #00ffff88;
 }
 
+/* IMAGE */
 .card img{
-  width:100%;
-  height:220px;
+  width:120px;
+  height:120px;
+  border-radius:50%;
   object-fit:cover;
-  border-radius:10px;
+  border:3px solid #00ffff;
+  margin-bottom:10px;
 }
 
-.card h3{
-  margin:10px 0 5px;
-  color:#0ea5e9;
-}
-
-.card p{
-  margin:3px 0;
-  font-size:14px;
-  color:#d1d5db;
-}
-
-/* BUTTON */
+/* BUTTONS */
 .btn{
-  margin:15px;
-  padding:10px 15px;
-  background:#0ea5e9;
+  display:block;
+  margin:8px 0;
+  padding:8px;
   border:none;
   border-radius:8px;
-  color:white;
   cursor:pointer;
+  font-weight:bold;
 }
 
-.btn:hover{
-  background:#0284c7;
+.chat{
+  background:#25D366;
+  color:white;
+}
+
+.call{
+  background:#00ffff;
+}
+
+.email{
+  background:#ff00ff;
+  color:white;
 }
 </style>
 </head>
 
 <body>
 
+<button class="back-btn" onclick="goBack()">⬅ Back</button>
+
 <div class="header">
   <h1>🏫 Campus Connect</h1>
-  <p>School Leadership & Administration</p>
+  <p>Meet School Leaders & Contact Them</p>
 </div>
 
 <div class="container">
 
-  <button class="btn" onclick="goBack()">⬅ Back to System</button>
+  <!-- CARD 1 -->
+  <div class="card">
+    <img src="images/headteacher.jpg" alt="Head Teacher">
+    <h3>Head Teacher</h3>
+    <p>IRASUBIZA Viateur</p>
+    <p>📞 +250794476085</p>
 
-  <div class="grid">
+    <a href="https://wa.me/250794476085" target="_blank">
+      <button class="btn chat">WhatsApp</button>
+    </a>
 
-    <!-- HEADMASTER -->
-    <div class="card">
-      <img src="images/headmaster.jpg" alt="Headmaster">
-      <h3>Headmaster</h3>
-      <p>Dr. John Doe</p>
-      <p>📧 head@school.com</p>
-      <p>📞 +250 788 000 111</p>
-    </div>
+    <a href="tel:+250794476085">
+      <button class="btn call">Call</button>
+    </a>
 
-    <!-- DEAN -->
-    <div class="card">
-      <img src="images/dean.jpg" alt="Dean">
-      <h3>Dean of Studies</h3>
-      <p>Mrs. Jane Mukamana</p>
-      <p>📧 dean@school.com</p>
-      <p>📞 +250 788 000 222</p>
-    </div>
-
-    <!-- DISCIPLINE -->
-    <div class="card">
-      <img src="images/discipline.jpg" alt="Discipline Master">
-      <h3>Discipline Master</h3>
-      <p>Mr. Eric Ndayisaba</p>
-      <p>📧 discipline@school.com</p>
-      <p>📞 +250 788 000 333</p>
-    </div>
-
-    <!-- ICT -->
-    <div class="card">
-      <img src="images/ict.jpg" alt="ICT Officer">
-      <h3>ICT Officer</h3>
-      <p>Eng. Viateur</p>
-      <p>📧 ict@school.com</p>
-      <p>📞 +250 788 000 444</p>
-    </div>
-
+    <a href="mailto:head@school.com">
+      <button class="btn email">Email</button>
+    </a>
   </div>
+
+  <!-- CARD 2 -->
+  <div class="card">
+    <img src="images/hod-math.jpg" alt="HOD Math">
+    <h3>HOD Mathematics</h3>
+    <p>Math Department</p>
+    <p>📞 +2507XXXXXXX</p>
+
+    <a href="https://wa.me/2507XXXXXXX" target="_blank">
+      <button class="btn chat">WhatsApp</button>
+    </a>
+
+    <a href="tel:+2507XXXXXXX">
+      <button class="btn call">Call</button>
+    </a>
+
+    <a href="mailto:math@school.com">
+      <button class="btn email">Email</button>
+    </a>
+  </div>
+
+  <!-- CARD 3 -->
+  <div class="card">
+    <img src="images/hod-science.jpg" alt="HOD Science">
+    <h3>HOD Science</h3>
+    <p>Science Department</p>
+    <p>📞 +2507XXXXXXX</p>
+
+    <a href="https://wa.me/2507XXXXXXX" target="_blank">
+      <button class="btn chat">WhatsApp</button>
+    </a>
+
+    <a href="tel:+2507XXXXXXX">
+      <button class="btn call">Call</button>
+    </a>
+
+    <a href="mailto:science@school.com">
+      <button class="btn email">Email</button>
+    </a>
+  </div>
+
 </div>
 
 <script>
 function goBack(){
-  // niba ukoresha system yawe
+  // 👇 subira muri main system yawe
   window.location.href = "index.html";
 }
 </script>
