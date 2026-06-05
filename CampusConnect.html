@@ -153,18 +153,31 @@ document.getElementById("file2").addEventListener("change", () => upload("file2"
 
 async function upload(fileId, imgId, name){
 
-  const file = document.getElementById(fileId).files[0];
+  const input = document.getElementById(fileId);
+  const file = input.files[0];
 
-  // 🚀 NO CONDITION (as you requested)
-  const storageRef = ref(storage, "campusconnect/" + name + ".jpg");
+  // 🔥 CHECK FILE
+  if(!file){
+    alert("Choose image first ❗");
+    return;
+  }
 
-  await uploadBytes(storageRef, file);
+  try{
 
-  const url = await getDownloadURL(storageRef);
+    const storageRef = ref(storage, "campusconnect/" + name + ".jpg");
 
-  document.getElementById(imgId).src = url;
+    await uploadBytes(storageRef, file);
 
-  alert("Upload successful ✅");
+    const url = await getDownloadURL(storageRef);
+
+    document.getElementById(imgId).src = url;
+
+    alert("Upload successful ✅");
+
+  } catch(error){
+    console.log("UPLOAD ERROR:", error);
+    alert("Upload failed ❌ Check console");
+  }
 }
 
 </script>
