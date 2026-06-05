@@ -202,7 +202,46 @@ window.loadSummary = async function(cls){
 
   box.innerHTML = html;
 };
+window.viewProfile = async function(name, cls){
 
+  document.getElementById("profileModal").style.display = "flex";
+  document.getElementById("pName").innerText = name;
+  document.getElementById("pClass").innerText = "Class: " + cls;
+
+  const box = document.getElementById("historyBox");
+  box.innerHTML = "Loading...";
+
+  const snap = await getDocs(collection(db,"attendance"));
+
+  let history = [];
+
+  snap.forEach(d=>{
+    let a = d.data();
+
+    if(a.name === name && a.class === cls){
+      history.push(a);
+    }
+  });
+
+  if(history.length === 0){
+    box.innerHTML = "<p>No history found</p>";
+    return;
+  }
+
+  box.innerHTML = "";
+
+  history.reverse().forEach(h=>{
+    box.innerHTML += `
+      <div class="historyItem">
+        <b>${h.date}</b><br>
+        Subject: ${h.subject}<br>
+        Status: ${h.status === "Present"
+          ? "✔ Present"
+          : "✖ Absent"}
+      </div>
+    `;
+  });
+};
 </script>
 
 <style>
