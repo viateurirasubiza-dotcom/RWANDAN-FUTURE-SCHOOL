@@ -774,8 +774,8 @@ cursor:pointer;
   <button class="att-btn" onclick="openAttendance()">
     📋 Attendance
   </button>
-     <button class="att-btn" onclick="openAttendance()">
-    📋 Students
+     <button class="att-btn" onclick="openStudents()">
+  🎓 Students
   </button>
 
 </div>
@@ -2600,6 +2600,9 @@ setInterval(updateClock, 1000);
 updateClock();
   window.openAttendance = function () {
   window.location.href = "attendance.html";
+};
+  window.openStudents = function () {
+  window.location.href = "students.html";
 };
   let sidebarOpen = true;
 
