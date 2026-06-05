@@ -155,14 +155,7 @@ window.submitAttendance = async function () {
     return;
   }
 
-  const dayMap = {
-    1: 1,
-    2: 2,
-    3: 3,
-    4: 4,
-    5: 5
-  };
-
+  const dayMap = { 1:1, 2:2, 3:3, 4:4, 5:5 };
   day = dayMap[day];
 
   for (let name in window.tempAttendance) {
@@ -179,13 +172,8 @@ window.submitAttendance = async function () {
   }
 
   alert("Attendance Submitted ✔");
-};
 
   window.tempAttendance = {};
-
-  loadSummary(cls);
-};
-  window.tempAttendance = {}; // RESET
 
   loadSummary(cls);
 };
@@ -233,11 +221,14 @@ window.loadSummary = async function (cls) {
         };
       }
 
-      data[key].days[a.day] = a.status === "Present" ? "✔" : "❌";
+      if (a.day >= 1 && a.day <= 5) {
+        data[key].days[a.day] =
+          a.status === "Present" ? "✔" : "❌";
+      }
     }
   });
 
-  let html = "<h3>📊 Weekly Attendance (Days 1–5)</h3>";
+  let html = "<h3>📊 Weekly Attendance (Mon–Fri)</h3>";
 
   html += `
   <table class="table">
@@ -245,11 +236,11 @@ window.loadSummary = async function (cls) {
       <th>Student</th>
       <th>Subject</th>
       <th>Week</th>
-      <th>Day 1</th>
-      <th>Day 2</th>
-      <th>Day 3</th>
-      <th>Day 4</th>
-      <th>Day 5</th>
+      <th>D1</th>
+      <th>D2</th>
+      <th>D3</th>
+      <th>D4</th>
+      <th>D5</th>
     </tr>
   `;
 
