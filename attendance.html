@@ -1,240 +1,132 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Attendance SaaS Dashboard</title>
+<title>Attendance SaaS Pro</title>
 
-  <script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      getDocs,
-      doc,
-      setDoc
-    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSy....",
-      authDomain: "neomis-77b36.firebaseapp.com",
-      projectId: "neomis-77b36"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSy....",
+  authDomain: "neomis-77b36.firebaseapp.com",
+  projectId: "neomis-77b36"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    window.db = db;
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+window.db = db;
 
-    // ================= SUBJECT PASSWORDS =================
-    const subjectPasswords = {
-      MATHEMATICS: "mat12",
-      ENGLISH: "engl12",
-      IKINYARWANDA: "kinyar12",
-      SCIENCE: "sci12",
-      "SOCIAL STUDIES": "social12",
-      FRENCH: "french12",
-      "P.E": "pe12",
-      "C.A": "ca12",
-      PHYSICS: "phy12",
-      CHEMISTRY: "chem12",
-      BIOLOGY: "bio12",
-      GEOGRAPHY: "geo12",
-      HISTORY: "hist12",
-      ECONOMICS: "eco12",
-      ENTREPRENEURSHIP: "ent12",
-      "COMPUTER SCIENCE": "cs12",
-      LITERATURE: "lit12",
-      SWAHILI: "swa12"
-    };
+/* SUBJECT PASSWORDS */
+const subjectPasswords = {
+  MATHEMATICS: "mat12",
+  ENGLISH: "engl12",
+  SCIENCE: "sci12",
+  PHYSICS: "phy12",
+  CHEMISTRY: "chem12",
+  BIOLOGY: "bio12",
+  "COMPUTER SCIENCE": "cs12"
+};
 
-    window.currentSubject = null;
+window.currentSubject = null;
 
-    // ================= LOGIN =================
-    window.loginTeacher = function () {
-      const subject = document.getElementById("subjectLogin").value;
-      const pass = document.getElementById("password").value;
+/* LOGIN */
+window.loginTeacher = function () {
+  const subject = document.getElementById("subjectLogin").value;
+  const pass = document.getElementById("password").value;
 
-      if (!subjectPasswords[subject] || subjectPasswords[subject] !== pass) {
-        alert("Wrong subject password!");
-        return;
-      }
+  if (subjectPasswords[subject] !== pass) {
+    alert("Wrong password!");
+    return;
+  }
 
-      window.currentSubject = subject;
-      document.getElementById("loginBox").style.display = "none";
-      document.getElementById("app").style.display = "flex";
-    };
+  window.currentSubject = subject;
 
-    // ================= SIDEBAR TOGGLE =================
-    window.toggleSidebar = function () {
-      const sidebar = document.getElementById("sidebar");
-      sidebar.style.display = sidebar.style.display === "none" ? "block" : "none";
-    };
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("app").style.display = "flex";
+};
 
-    // ================= LOAD STUDENTS =================
-    window.loadStudents = async function () {
-      const cls = document.getElementById("classSelect").value;
-      const box = document.getElementById("students");
+/* SIDEBAR */
+window.toggleSidebar = function () {
+  document.querySelector(".sidebar").classList.toggle("hide");
+};
 
-      if (!cls) return;
+/* CLASSES */
+window.loadClasses = function () {
+  const select = document.getElementById("classSelect");
 
-      box.innerHTML = "";
+  const classes = ["P1","P2","P3","P4","P5","P6","S1","S2","S3","S4","S5","S6"];
 
-      const snap = await getDocs(collection(db, "classStudents"));
+  select.innerHTML = `<option value="">Select Class</option>`;
+  classes.forEach(c => select.innerHTML += `<option>${c}</option>`);
+};
 
-      snap.forEach(d => {
-        const s = d.data();
+/* LOAD STUDENTS */
+window.loadStudents = async function () {
+  const cls = document.getElementById("classSelect").value;
+  const box = document.getElementById("students");
 
-        if (s.class === cls) {
-          box.innerHTML += `
-            <div class="card">
-              <div>
-                <h3>${s.name}</h3>
-                <small>${s.class}</small>
-              </div>
+  box.innerHTML = "";
 
-              <div class="btns">
-                <button class="present" onclick="mark('${s.name}','Present')">Present</button>
-                <button class="absent" onclick="mark('${s.name}','Absent')">Absent</button>
-              </div>
-            </div>
-          `;
-        }
-      });
+  const snap = await getDocs(collection(db, "classStudents"));
 
-      loadSummary(cls);
-    };
+  snap.forEach(d => {
+    const s = d.data();
+    if (s.class === cls) {
+      box.innerHTML += `
+        <div class="card">
+          <div>
+            <h3>${s.name}</h3>
+            <span>${s.class}</span>
+          </div>
 
-    // ================= MARK =================
-    window.mark = async function (name, status) {
-
-      const cls = document.getElementById("classSelect").value;
-      const today = new Date().toISOString().split("T")[0];
-
-      await addDoc(collection(db, "attendance"), {
-        name,
-        class: cls,
-        subject: window.currentSubject,
-        status,
-        date: today,
-        timestamp: Date.now()
-      });
-
-      await updateSummary(name, cls);
-      loadSummary(cls);
-
-      alert(`${name} → ${status}`);
-    };
-
-    // ================= SUMMARY =================
-    async function updateSummary(name, cls) {
-
-      const snap = await getDocs(collection(db, "attendance"));
-
-      let present = 0;
-      let absent = 0;
-
-      snap.forEach(d => {
-        const a = d.data();
-        if (a.name === name && a.class === cls) {
-          a.status === "Present" ? present++ : absent++;
-        }
-      });
-
-      const total = present + absent;
-      const percentage = total ? Math.round((present / total) * 100) : 0;
-
-      await setDoc(doc(db, "attendanceSummary", name + "_" + cls), {
-        name,
-        class: cls,
-        present,
-        absent,
-        total,
-        percentage
-      });
-    }
-
-    window.loadSummary = async function (cls) {
-
-      const snap = await getDocs(collection(db, "attendanceSummary"));
-
-      let html = "";
-
-      snap.forEach(d => {
-        const s = d.data();
-
-        if (s.class === cls) {
-          html += `
-            <div class="summaryCard">
-              <h3>${s.name}</h3>
-
-              <div class="stats">
-                <span>✅ ${s.present}</span>
-                <span>❌ ${s.absent}</span>
-                <span>📊 ${s.percentage}%</span>
-              </div>
-
-              <button onclick="viewProfile('${s.name}','${s.class}')">
-                View Profile
-              </button>
-            </div>
-          `;
-        }
-      });
-
-      document.getElementById("summary").innerHTML = html;
-    };
-
-    // ================= PROFILE =================
-    window.viewProfile = async function (name, cls) {
-
-      const snap = await getDocs(collection(db, "attendance"));
-
-      let html = `
-        <div class="profile">
-          <h2>👨‍🎓 ${name}</h2>
-          <p>Class: ${cls}</p>
-          <p>Subject: ${window.currentSubject}</p>
-          <hr/>
+          <div>
+            <button class="present" onclick="mark('${s.name}','Present')">✔</button>
+            <button class="absent" onclick="mark('${s.name}','Absent')">✖</button>
+          </div>
+        </div>
       `;
+    }
+  });
+};
 
-      snap.forEach(d => {
-        const a = d.data();
+/* MARK */
+window.mark = async function (name, status) {
 
-        if (a.name === name && a.class === cls) {
-          html += `
-            <div class="historyRow">
-              <span>${a.date}</span>
-              <b>${a.status}</b>
-            </div>
-          `;
-        }
-      });
+  const cls = document.getElementById("classSelect").value;
+  const today = new Date().toISOString().split("T")[0];
 
-      html += `</div>`;
+  await addDoc(collection(db, "attendance"), {
+    name,
+    class: cls,
+    subject: window.currentSubject,
+    status,
+    date: today
+  });
 
-      document.getElementById("students").innerHTML = html;
-    };
+  alert(name + " marked " + status);
+};
 
-    // ================= CLASSES UP TO S6 =================
-    window.loadClasses = function () {
-      const select = document.getElementById("classSelect");
-
-      const classes = [
-        "P1","P2","P3","P4","P5","P6",
-        "S1","S2","S3","S4","S5","S6"
-      ];
-
-      select.innerHTML = `<option value="">Select Class</option>`;
-      classes.forEach(c => {
-        select.innerHTML += `<option>${c}</option>`;
-      });
-    };
-
-  </script>
+</script>
 
 <style>
-body{margin:0;font-family:Arial;background:#0a0f1f;color:white}
+
+/* BODY */
+body{
+  margin:0;
+  font-family: 'Segoe UI';
+  background: linear-gradient(135deg,#0f172a,#020617);
+  color:white;
+}
 
 /* LOGIN */
 #loginBox{
@@ -243,48 +135,100 @@ body{margin:0;font-family:Arial;background:#0a0f1f;color:white}
   justify-content:center;
   align-items:center;
 }
+
 .login{
-  background:#111827;
-  padding:20px;
-  border-radius:12px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  padding:30px;
+  border-radius:20px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.5);
+  width:300px;
 }
 
 /* APP */
-#app{display:none}
+#app{
+  display:none;
+}
 
 /* SIDEBAR */
 .sidebar{
-  width:220px;
-  background:#111827;
+  width:240px;
   height:100vh;
-  padding:20px;
   position:fixed;
+  left:0;
+  top:0;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  padding:20px;
+  transition:0.3s;
+}
+
+.sidebar.hide{
+  transform: translateX(-100%);
 }
 
 /* MAIN */
 .main{
-  margin-left:240px;
+  margin-left:260px;
   padding:20px;
-  width:100%;
 }
 
-/* BUTTONS */
-button{
+/* TOP BAR */
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+/* INPUTS */
+select,input{
   padding:10px;
-  margin:5px;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
+  margin:5px;
 }
 
-.present{background:#16a34a;color:white}
-.absent{background:#dc2626;color:white}
+/* BUTTON */
+button{
+  border:none;
+  padding:10px 15px;
+  border-radius:10px;
+  cursor:pointer;
+}
 
-.card,.summaryCard{
-  background:#111827;
+/* CARDS */
+.card{
+  background: rgba(255,255,255,0.06);
   padding:15px;
-  margin:10px;
-  border-radius:12px;
+  margin:10px 0;
+  border-radius:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  transition:0.3s;
 }
+
+.card:hover{
+  transform: scale(1.02);
+}
+
+/* STATUS BUTTONS */
+.present{
+  background:#22c55e;
+  color:white;
+}
+
+.absent{
+  background:#ef4444;
+  color:white;
+}
+
+/* TITLE */
+h1{
+  font-size:28px;
+  color:#38bdf8;
+}
+
 </style>
 </head>
 
@@ -305,9 +249,11 @@ button{
       <option>COMPUTER SCIENCE</option>
     </select>
 
-    <input type="password" id="password" placeholder="Enter password">
+    <input type="password" id="password" placeholder="Password">
 
-    <button onclick="loginTeacher()">Login</button>
+    <button onclick="loginTeacher()" style="background:#38bdf8;color:white;">
+      Login
+    </button>
   </div>
 </div>
 
@@ -315,24 +261,21 @@ button{
 <div id="app">
 
   <!-- SIDEBAR -->
-  <div class="sidebar" id="sidebar">
-    <h2>📊 MIS</h2>
-    <button onclick="loadStudents()">Students</button>
+  <div class="sidebar">
+    <h2>📊 SaaS MIS</h2>
+    <button onclick="toggleSidebar()">☰ Menu</button>
   </div>
 
   <!-- MAIN -->
   <div class="main">
 
-    <button onclick="toggleSidebar()">☰ Menu</button>
-
-    <h1>Attendance Dashboard</h1>
+    <div class="topbar">
+      <h1>Attendance Dashboard</h1>
+    </div>
 
     <select id="classSelect" onchange="loadStudents()"></select>
 
     <div id="students"></div>
-
-    <h2>Summary</h2>
-    <div id="summary"></div>
 
   </div>
 
