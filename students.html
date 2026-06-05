@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Students Dashboard</title>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSy....",
+      authDomain: "neomis-77b36.firebaseapp.com",
+      projectId: "neomis-77b36"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.db = db;
+
+    // ================= STATUS HELPERS =================
+    function statusLabel(p) {
+      if (p >= 75) return "Good";
+      if (p >= 50) return "Average";
+      return "Poor";
+    }
+
+    function statusClass(p) {
+      if (p >= 75) return "good";
+      if (p >= 50) return "avg";
+      return "bad";
+    }
+
+    // ================= LOAD STUDENTS =================
+    window.loadStudents = async function () {
+
+      const snap = await getDocs(collection(db, "attendanceSummary"));
+
+      let html = "";
+
+      snap.forEach(d => {
+        const s = d.data();
+
+        html += `
+          <div class="card">
+
+            <div class="profile">
+              <img src="${s.photo || 'https://i.pravatar.cc/150'}" />
+
+              <div>
+                <h3>${s.name}</h3>
+                <small>${s.class}</small>
+              </div>
+            </div>
+
+            <div class="stats">
+              <span>📊 ${s.percentage}%</span>
+              <span class="badge ${statusClass(s.percentage)}">
+                ${statusLabel(s.percentage)}
+              </span>
+            </div>
+
+            <button onclick="viewProfile('${s.name}','${s.class}')">
+              View Profile
+            </button>
+
+          </div>
+        `;
+      });
+
+      document.getElementById("studentsList").innerHTML = html;
+    };
+
+    // ================= PROFILE VIEW =================
+    window.viewProfile = async function (name, cls) {
+
+      const snap = await getDocs(collection(db, "attendance"));
+
+      let html = `
+        <div class="profilePage">
+          <h2>👤 ${name} Attendance History</h2>
+          <p>Class: ${cls}</p>
+          <hr/>
+      `;
+
+      snap.forEach(d => {
+        const a = d.data();
+
+        if (a.name === name && a.class === cls) {
+          html += `
+            <div class="history">
+              <span>${a.date}</span>
+              <b>${a.status}</b>
+            </div>
+          `;
+        }
+      });
+
+      html += `</div>`;
+
+      document.getElementById("studentsList").innerHTML = html;
+    };
+
+    // ================= SEARCH =================
+    window.filterStudents = function () {
+
+      let input = document.getElementById("search").value.toLowerCase();
+      let cards = document.querySelectorAll(".card");
+
+      cards.forEach(card => {
+        let name = card.querySelector("h3").innerText.toLowerCase();
+
+        card.style.display = name.includes(input) ? "block" : "none";
+      });
+    };
+
+    window.onload = loadStudents;
+
+  </script>
+
+  <style>
+    body{
+      margin:0;
+      font-family:Arial;
+      background:#0a0f1f;
+      color:white;
+      padding:20px;
+    }
+
+    h1{
+      color:#00e5ff;
+    }
+
+    input{
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:none;
+      margin-bottom:15px;
+      outline:none;
+    }
+
+    /* CARD */
+    .card{
+      background:rgba(17,24,39,0.9);
+      backdrop-filter: blur(10px);
+      padding:15px;
+      margin:10px 0;
+      border-radius:16px;
+      border:1px solid #1f2937;
+      transition:0.3s;
+    }
+
+    .card:hover{
+      transform:scale(1.02);
+    }
+
+    /* PROFILE */
+    .profile{
+      display:flex;
+      align-items:center;
+      gap:15px;
+    }
+
+    .profile img{
+      width:60px;
+      height:60px;
+      border-radius:50%;
+      object-fit:cover;
+      border:2px solid #00e5ff;
+    }
+
+    .stats{
+      display:flex;
+      justify-content:space-between;
+      margin-top:10px;
+    }
+
+    /* BADGES */
+    .badge{
+      padding:5px 10px;
+      border-radius:20px;
+      font-size:12px;
+    }
+
+    .good{ background:#16a34a; }
+    .avg{ background:#f59e0b; }
+    .bad{ background:#dc2626; }
+
+    /* BUTTON */
+    button{
+      margin-top:10px;
+      padding:8px;
+      border:none;
+      border-radius:10px;
+      background:#00e5ff;
+      cursor:pointer;
+      font-weight:bold;
+    }
+
+    /* HISTORY */
+    .history{
+      display:flex;
+      justify-content:space-between;
+      padding:8px;
+      background:#111827;
+      margin:5px 0;
+      border-radius:8px;
+    }
+
+    .profilePage{
+      background:#111827;
+      padding:15px;
+      border-radius:12px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>👨‍🎓 Students Dashboard</h1>
+
+  <input id="search" placeholder="Search student..." oninput="filterStudents()">
+
+  <div id="studentsList"></div>
+
+</body>
+</html>
