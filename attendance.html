@@ -1,200 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attendance System | RWANDAN FUTURE MIS</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      font-family: Arial;
-      margin: 0;
-      padding: 20px;
-      background: #050510;
-      color: white;
-    }
+<title>Attendance Dashboard</title>
 
-    h2 {
-      text-align: center;
-      color: #00ffff;
-      text-shadow: 0 0 10px #00ffff;
-    }
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:linear-gradient(135deg,#050510,#0a0a2a);
+  color:white;
+}
 
-    .box {
-      max-width: 800px;
-      margin: auto;
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px #00ffff33;
-    }
+/* HEADER */
+.header{
+  background:rgba(0,255,255,0.1);
+  padding:15px;
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+  color:#00ffff;
+  box-shadow:0 0 15px #00ffff55;
+}
 
-    select, button {
-      padding: 10px;
-      margin: 5px;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-    }
+/* CONTAINER */
+.container{
+  max-width:900px;
+  margin:30px auto;
+  background:rgba(255,255,255,0.05);
+  padding:20px;
+  border-radius:15px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 0 20px rgba(0,255,255,0.2);
+}
 
-    button {
-      cursor: pointer;
-      background: linear-gradient(90deg, #00ffff, #ff00ff);
-      color: white;
-      font-weight: bold;
-    }
+/* CONTROLS */
+.controls{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:15px;
+}
 
-    .student {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(255,255,255,0.08);
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 10px;
-    }
+select, input{
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  outline:none;
+  background:#111;
+  color:white;
+  flex:1;
+}
 
-    .student select {
-      background: #111;
-      color: white;
-    }
+/* BUTTON */
+button{
+  padding:10px 15px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+  transition:0.3s;
+}
 
-    .top-bar {
-      text-align: center;
-      margin-bottom: 15px;
-    }
+.save-btn{
+  background:linear-gradient(90deg,#00ffff,#ff00ff);
+  color:white;
+}
 
-  </style>
+.back-btn{
+  background:#ff004c;
+  color:white;
+}
+
+/* TABLE */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+}
+
+th,td{
+  border:1px solid rgba(255,255,255,0.2);
+  padding:10px;
+  text-align:center;
+}
+
+th{
+  background:rgba(0,255,255,0.2);
+  color:#00ffff;
+}
+
+.present{
+  background:#00c853;
+  color:white;
+}
+
+.absent{
+  background:#d50000;
+  color:white;
+}
+
+/* STATUS BUTTONS */
+.status-btn{
+  padding:6px 10px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+</style>
 </head>
 
 <body>
 
-  <h2>📋 Attendance System</h2>
+<div class="header">
+📋 ATTENDANCE SYSTEM - RWANDAN FUTURE MIS
+</div>
 
-  <div class="box">
+<div class="container">
 
-    <div class="top-bar">
+  <!-- CONTROLS -->
+  <div class="controls">
 
-      <select id="classSelect">
-        <option value="">Select Class</option>
-        <option>P1</option>
-        <option>P2</option>
-        <option>P3</option>
-        <option>P4</option>
-        <option>P5</option>
-        <option>P6</option>
-        <option>S1</option>
-        <option>S2</option>
-        <option>S3</option>
-        <option>S4</option>
-        <option>S5</option>
-        <option>S6</option>
-      </select>
+    <select id="classSelect">
+      <option value="">Select Class</option>
+      <option>P1</option>
+      <option>P2</option>
+      <option>P3</option>
+      <option>P4</option>
+      <option>P5</option>
+      <option>P6</option>
+      <option>S1</option>
+      <option>S2</option>
+      <option>S3</option>
+      <option>S4</option>
+      <option>S5</option>
+      <option>S6</option>
+    </select>
 
-      <button onclick="loadStudents()">Load Students</button>
-      <button onclick="saveAttendance()">Save Attendance</button>
+    <input type="date" id="attDate">
 
-    </div>
+    <button class="save-btn" onclick="saveAttendance()">
+      💾 Save
+    </button>
 
-    <div id="attendanceBox"></div>
+    <button class="back-btn" onclick="goBack()">
+      ⬅ Back
+    </button>
 
   </div>
 
-  <!-- FIREBASE -->
-  <script type="module">
+  <!-- TABLE -->
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Student Name</th>
+        <th>Status</th>
+      </tr>
+    </thead>
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      addDoc
-    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    <tbody id="studentList">
+      <tr>
+        <td colspan="3">Select class to load students</td>
+      </tr>
+    </tbody>
+  </table>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSy....",
-      authDomain: "neomis-77b36.firebaseapp.com",
-      projectId: "neomis-77b36",
-      storageBucket: "neomis-77b36.firebasestorage.app",
-      messagingSenderId: "836047126207",
-      appId: "1:836047126207:web:df890a577383585698100a"
-    };
+</div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+<script>
+let students = [];
 
-    // ================= LOAD STUDENTS =================
-    window.loadStudents = async function () {
+// demo load (later tuzayihuza na Firebase yawe)
+function loadStudents(){
+  const cls = document.getElementById("classSelect").value;
 
-      let cls = document.getElementById("classSelect").value;
-      if (!cls) return alert("Select class first");
+  if(!cls){
+    document.getElementById("studentList").innerHTML =
+      "<tr><td colspan='3'>Select class first</td></tr>";
+    return;
+  }
 
-      const snap = await getDocs(collection(db, "classStudents"));
+  // demo data (uzasimbuza Firebase)
+  students = [
+    "John Doe",
+    "Alice",
+    "Emmanuel",
+    "Grace",
+    "Kevin"
+  ];
 
-      let students = [];
+  let html = "";
 
-      snap.forEach(d => {
-        let s = d.data();
-        if (s.class === cls) {
-          students.push(s.name);
-        }
-      });
+  students.forEach((s,i)=>{
+    html += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${s}</td>
+        <td>
+          <button class="status-btn present" onclick="mark(this,'Present')">Present</button>
+          <button class="status-btn absent" onclick="mark(this,'Absent')">Absent</button>
+        </td>
+      </tr>
+    `;
+  });
 
-      let html = "";
+  document.getElementById("studentList").innerHTML = html;
+}
 
-      students.forEach((name, i) => {
-        html += `
-          <div class="student">
-            <span>${name}</span>
+document.getElementById("classSelect").addEventListener("change", loadStudents);
 
-            <select id="att_${i}">
-              <option value="Present">Present</option>
-              <option value="Absent">Absent</option>
-              <option value="Late">Late</option>
-            </select>
-          </div>
-        `;
-      });
+function mark(btn,status){
+  let row = btn.parentElement.parentElement;
+  row.setAttribute("data-status",status);
 
-      document.getElementById("attendanceBox").innerHTML = html;
-    };
+  if(status === "Present"){
+    row.style.background = "rgba(0,200,83,0.2)";
+  }else{
+    row.style.background = "rgba(213,0,0,0.2)";
+  }
+}
 
-    // ================= SAVE ATTENDANCE =================
-    window.saveAttendance = async function () {
+function saveAttendance(){
+  alert("Attendance saved successfully ✔ (connect Firebase here)");
+}
 
-      let cls = document.getElementById("classSelect").value;
-      if (!cls) return alert("Select class");
-
-      const snap = await getDocs(collection(db, "classStudents"));
-
-      let students = [];
-
-      snap.forEach(d => {
-        let s = d.data();
-        if (s.class === cls) {
-          students.push(s.name);
-        }
-      });
-
-      let records = {};
-
-      students.forEach((name, i) => {
-        let status = document.getElementById(`att_${i}`).value;
-        records[name] = status;
-      });
-
-      await addDoc(collection(db, "attendance"), {
-        class: cls,
-        date: new Date().toISOString().split("T")[0],
-        records,
-        createdAt: Date.now()
-      });
-
-      alert("Attendance saved ✔");
-    };
-
-  </script>
+function goBack(){
+  window.location.href = "index.html";
+}
+</script>
 
 </body>
 </html>
