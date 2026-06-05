@@ -1,239 +1,164 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Attendance System</title>
+  <title>Attendance System</title>
 
-<script type="module">
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSy....",
+      authDomain: "neomis-77b36.firebaseapp.com",
+      projectId: "neomis-77b36"
+    };
 
-const firebaseConfig = {
-  apiKey: "AIzaSy....",
-  authDomain: "neomis-77b36.firebaseapp.com",
-  projectId: "neomis-77b36",
-  storageBucket: "neomis-77b36.firebasestorage.app",
-  messagingSenderId: "836047126207",
-  appId: "1:836047126207:web:df890a577383585698100a"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-window.db = db;
+    window.db = db;
 
-window.students = [];
+    // LOAD STUDENTS
+    window.loadStudents = async function () {
 
-/* LOAD STUDENTS FROM YOUR SYSTEM */
-window.loadStudents = async function () {
+      const cls = document.getElementById("classSelect").value;
+      const container = document.getElementById("list");
 
-  const cls = document.getElementById("classSelect").value;
-  const list = document.getElementById("list");
+      container.innerHTML = "";
 
-  if (!cls) return;
+      const snap = await getDocs(collection(db, "classStudents"));
 
-  const snap = await getDocs(collection(db, "classStudents"));
+      snap.forEach(doc => {
+        const s = doc.data();
 
-  window.students = [];
+        if (s.class === cls) {
 
-  snap.forEach(d => {
-    let s = d.data();
-    if (s.class === cls) {
-      window.students.push(s.name);
+          container.innerHTML += `
+            <div class="card">
+              <h3>${s.name}</h3>
+
+              <button class="present" onclick="mark('${s.name}','Present')">Present</button>
+              <button class="absent" onclick="mark('${s.name}','Absent')">Absent</button>
+            </div>
+          `;
+        }
+      });
+    };
+
+    // MARK ATTENDANCE
+    window.mark = async function (name, status) {
+
+      const cls = document.getElementById("classSelect").value;
+
+      await addDoc(collection(db, "attendance"), {
+        name,
+        class: cls,
+        status,
+        date: new Date().toISOString().split("T")[0],
+        timestamp: Date.now()
+      });
+
+      alert(name + " marked " + status);
+    };
+
+    // VIEW HISTORY
+    window.viewHistory = async function () {
+
+      const snap = await getDocs(collection(db, "attendance"));
+
+      let html = "<h2>Attendance History</h2>";
+
+      snap.forEach(d => {
+        const a = d.data();
+
+        html += `
+          <div class="history">
+            ${a.date} | ${a.name} | ${a.class} | ${a.status}
+          </div>
+        `;
+      });
+
+      document.getElementById("history").innerHTML = html;
+    };
+
+  </script>
+
+  <style>
+    body{
+      font-family:Arial;
+      background:#0a0a1a;
+      color:white;
+      padding:20px;
     }
-  });
 
-  renderStudents();
-};
+    h1{
+      color:#00ffff;
+    }
 
-/* RENDER UI */
-function renderStudents() {
+    select,button{
+      padding:10px;
+      margin:5px;
+    }
 
-  let html = "";
+    .card{
+      background:#111;
+      padding:10px;
+      margin:10px;
+      border-radius:10px;
+      border:1px solid #00ffff;
+    }
 
-  window.students.forEach((name, i) => {
+    .present{
+      background:green;
+      color:white;
+      padding:8px;
+      margin:5px;
+    }
 
-    html += `
-      <tr>
-        <td>${i + 1}</td>
-        <td>${name}</td>
-        <td>
-          <button class="p" onclick="mark('${name}','Present')">✔ Present</button>
-          <button class="a" onclick="mark('${name}','Absent')">✖ Absent</button>
-        </td>
-      </tr>
-    `;
-  });
+    .absent{
+      background:red;
+      color:white;
+      padding:8px;
+      margin:5px;
+    }
 
-  document.getElementById("list").innerHTML = html;
-}
-
-/* MARK ATTENDANCE */
-window.mark = async function (name, status) {
-
-  const cls = document.getElementById("classSelect").value;
-  const date = document.getElementById("date").value;
-
-  if (!cls || !date) {
-    alert("Select class and date");
-    return;
-  }
-
-  await addDoc(collection(db, "attendance"), {
-    name,
-    class: cls,
-    date,
-    status,
-    timestamp: Date.now()
-  });
-
-  alert(name + " marked " + status);
-};
-
-/* LOAD SUMMARY */
-window.loadSummary = async function () {
-
-  const cls = document.getElementById("classSelect").value;
-  const date = document.getElementById("date").value;
-
-  const q = query(
-    collection(db, "attendance"),
-    where("class", "==", cls),
-    where("date", "==", date)
-  );
-
-  const snap = await getDocs(q);
-
-  let present = 0;
-  let absent = 0;
-
-  snap.forEach(d => {
-    if (d.data().status === "Present") present++;
-    else absent++;
-  });
-
-  const total = present + absent;
-  const percent = total ? Math.round((present / total) * 100) : 0;
-
-  document.getElementById("summary").innerHTML = `
-    <h3>📊 Attendance Summary</h3>
-    <p>Present: ${present}</p>
-    <p>Absent: ${absent}</p>
-    <p>Attendance Rate: <b>${percent}%</b></p>
-  `;
-};
-
-</script>
-
-<style>
-body{
-  font-family:Arial;
-  background:#050510;
-  color:white;
-  margin:0;
-}
-
-.header{
-  text-align:center;
-  padding:15px;
-  background:#00ffff22;
-  color:#00ffff;
-  font-size:20px;
-}
-
-.container{
-  max-width:900px;
-  margin:20px auto;
-  background:#111;
-  padding:20px;
-  border-radius:10px;
-}
-
-select,input,button{
-  padding:10px;
-  margin:5px;
-  border-radius:8px;
-}
-
-table{
-  width:100%;
-  margin-top:15px;
-  border-collapse:collapse;
-}
-
-th,td{
-  border:1px solid #444;
-  padding:10px;
-  text-align:center;
-}
-
-th{
-  background:#00ffff33;
-}
-
-.p{
-  background:#00c853;
-  color:white;
-}
-
-.a{
-  background:#d50000;
-  color:white;
-}
-
-.summary{
-  margin-top:20px;
-  padding:10px;
-  background:#222;
-}
-</style>
-
+    .history{
+      background:#222;
+      padding:8px;
+      margin:5px;
+      border-left:3px solid #00ffff;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="header">
-📋 FULL ATTENDANCE SYSTEM (FIREBASE)
-</div>
+<h1>📋 Attendance System</h1>
 
-<div class="container">
+<select id="classSelect" onchange="loadStudents()">
+  <option value="">Select Class</option>
+  <option>P1</option>
+  <option>P2</option>
+  <option>P3</option>
+  <option>P4</option>
+  <option>P5</option>
+  <option>P6</option>
+  <option>S1</option>
+  <option>S2</option>
+</select>
 
-  <select id="classSelect" onchange="loadStudents()">
-    <option value="">Select Class</option>
-    <option>P1</option><option>P2</option><option>P3</option>
-    <option>P4</option><option>P5</option><option>P6</option>
-    <option>S1</option><option>S2</option><option>S3</option>
-    <option>S4</option><option>S5</option><option>S6</option>
-  </select>
+<button onclick="viewHistory()">View Attendance History</button>
 
-  <input type="date" id="date">
+<hr>
 
-  <button onclick="loadSummary()">📊 View Summary</button>
+<div id="list"></div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Student</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-
-    <tbody id="list">
-      <tr><td colspan="3">Select class</td></tr>
-    </tbody>
-  </table>
-
-  <div id="summary" class="summary"></div>
-
-</div>
+<div id="history"></div>
 
 </body>
 </html>
