@@ -23,17 +23,17 @@
     window.db = db;
 
     // ================= STATUS HELPERS =================
-    function statusLabel(p) {
+    window.statusLabel = function (p) {
       if (p >= 75) return "Good";
       if (p >= 50) return "Average";
       return "Poor";
-    }
+    };
 
-    function statusClass(p) {
+    window.statusClass = function (p) {
       if (p >= 75) return "good";
       if (p >= 50) return "avg";
       return "bad";
-    }
+    };
 
     // ================= LOAD STUDENTS =================
     window.loadStudents = async function () {
@@ -50,7 +50,6 @@
 
             <div class="profile">
               <img src="${s.photo || 'https://i.pravatar.cc/150'}" />
-
               <div>
                 <h3>${s.name}</h3>
                 <small>${s.class}</small>
@@ -81,8 +80,10 @@
       const snap = await getDocs(collection(db, "attendance"));
 
       let html = `
+        <button onclick="loadStudents()">⬅ Back</button>
+
         <div class="profilePage">
-          <h2>👤 ${name} Attendance History</h2>
+          <h2>👤 ${name}</h2>
           <p>Class: ${cls}</p>
           <hr/>
       `;
@@ -112,13 +113,13 @@
       let cards = document.querySelectorAll(".card");
 
       cards.forEach(card => {
-        let name = card.querySelector("h3").innerText.toLowerCase();
-
+        let name = card.querySelector("h3")?.innerText.toLowerCase() || "";
         card.style.display = name.includes(input) ? "block" : "none";
       });
     };
 
-    window.onload = loadStudents;
+    // INIT
+    window.addEventListener("DOMContentLoaded", loadStudents);
 
   </script>
 
@@ -131,9 +132,7 @@
       padding:20px;
     }
 
-    h1{
-      color:#00e5ff;
-    }
+    h1{ color:#00e5ff; }
 
     input{
       width:100%;
@@ -144,10 +143,8 @@
       outline:none;
     }
 
-    /* CARD */
     .card{
       background:rgba(17,24,39,0.9);
-      backdrop-filter: blur(10px);
       padding:15px;
       margin:10px 0;
       border-radius:16px;
@@ -155,11 +152,8 @@
       transition:0.3s;
     }
 
-    .card:hover{
-      transform:scale(1.02);
-    }
+    .card:hover{ transform:scale(1.02); }
 
-    /* PROFILE */
     .profile{
       display:flex;
       align-items:center;
@@ -170,7 +164,6 @@
       width:60px;
       height:60px;
       border-radius:50%;
-      object-fit:cover;
       border:2px solid #00e5ff;
     }
 
@@ -180,7 +173,6 @@
       margin-top:10px;
     }
 
-    /* BADGES */
     .badge{
       padding:5px 10px;
       border-radius:20px;
@@ -191,7 +183,6 @@
     .avg{ background:#f59e0b; }
     .bad{ background:#dc2626; }
 
-    /* BUTTON */
     button{
       margin-top:10px;
       padding:8px;
@@ -202,7 +193,6 @@
       font-weight:bold;
     }
 
-    /* HISTORY */
     .history{
       display:flex;
       justify-content:space-between;
@@ -218,6 +208,7 @@
       border-radius:12px;
     }
   </style>
+
 </head>
 
 <body>
