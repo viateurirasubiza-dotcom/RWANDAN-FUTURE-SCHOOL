@@ -110,31 +110,46 @@ window.loadStudents = async function () {
 };
   window.toggleAttendance = function(name, isChecked){
 
-  tempAttendance[name] = isChecked ? "Present" : "Absent";
+  if (!window.tempAttendance) {
+    window.tempAttendance = {};
+  }
+
+  window.tempAttendance[name] = isChecked ? "Present" : "Absent";
+
+  console.log("TEMP:", window.tempAttendance);
 };
 
-  window.submitAttendance = async function(){
+ window.submitAttendance = async function(){
 
   const cls = document.getElementById("classSelect").value;
 
-  for (let name in tempAttendance) {
+  if (!cls) {
+    alert("Select class first!");
+    return;
+  }
+
+  if (!window.tempAttendance || Object.keys(window.tempAttendance).length === 0) {
+    alert("No attendance selected!");
+    return;
+  }
+
+  for (let name in window.tempAttendance) {
 
     await addDoc(collection(db,"attendance"),{
       name,
       class: cls,
       subject: window.currentSubject,
-      status: tempAttendance[name],
+      status: window.tempAttendance[name],
       date: new Date().toISOString().split("T")[0]
     });
   }
 
   alert("Attendance Submitted ✔");
 
-  tempAttendance = {};
+  window.tempAttendance = {}; // RESET
 
   loadSummary(cls);
-};
-/* ================= MARK ATTENDANCE ================= */
+};TENDANCE ================= */
 window.mark = async function(name, status, cls){
 
   await addDoc(collection(db,"attendance"),{
