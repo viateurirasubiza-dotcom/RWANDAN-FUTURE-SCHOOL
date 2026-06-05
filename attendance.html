@@ -40,18 +40,30 @@ const subjectPasswords = {
 window.currentSubject = null;
 
 /* LOGIN */
-window.loginTeacher = function(){
-  const subject = document.getElementById("subjectLogin").value;
-  const pass = document.getElementById("password").value;
+window.loginTeacher = function () {
 
-  if(subjectPasswords[subject] !== pass){
+  const subject = document.getElementById("subjectLogin").value.trim();
+  const pass = document.getElementById("password").value.trim();
+
+  const subjectPasswords = {
+    MATHEMATICS:"mat12",
+    ENGLISH:"engl12",
+    SCIENCE:"sci12",
+    PHYSICS:"phy12",
+    CHEMISTRY:"chem12",
+    BIOLOGY:"bio12",
+    "COMPUTER SCIENCE":"cs12"
+  };
+
+  if (subjectPasswords[subject] !== pass) {
     alert("Wrong password!");
     return;
   }
 
   window.currentSubject = subject;
-  document.getElementById("loginBox").style.display="none";
-  document.getElementById("app").style.display="block";
+
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("app").style.display = "block";
 };
 
 /* ================= LOAD CLASSES ================= */
