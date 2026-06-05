@@ -208,85 +208,88 @@ window.loadSummary = async function (cls) {
   snap.forEach(d => {
     let a = d.data();
 
-    if (a.class === cls) {
+    if (a.class !== cls) return;
 
-      if (!data[a.name]) {
-        data[a.name] = {};
-      }
+    const key = `${a.name}_${a.subject}_W${a.week}`;
 
-      const subject = a.subject?.toUpperCase().trim();
-
-      if (!data[a.name][subject]) {
-        data[a.name][subject] = {
-          records: [],
-          present: 0,
-          total: 0,
-          lastWeek: "-",
-          lastDay: "-"
-        };
-      }
-
-      data[a.name][subject].records.push(a);
-
-      data[a.name][subject].total++;
-
-      if (a.status === "Present") {
-        data[a.name][subject].present++;
-      }
-
-      // track latest week/day
-      data[a.name][subject].lastWeek = a.week || "-";
-      data[a.name][subject].lastDay = a.day || "-";
+    if (!data[key]) {
+      data[key] = {
+        name: a.name,
+        subject: a.subject,
+        week: a.week,
+        present: 0,
+        absent: 0,
+        days: {}
+      };
     }
+
+    if (a.status === "Present") {
+      data[key].present++;
+    } else {
+      data[key].absent++;
+    }
+
+    data[key].days[a.day] =
+      a.status === "Present" ? "✔" : "❌";
   });
 
-  const subjects = [
-    "MATHEMATICS",
-    "ENGLISH",
-    "SCIENCE",
-    "PHYSICS",
-    "CHEMISTRY",
-    "BIOLOGY",
-    "COMPUTER SCIENCE"
-  ];
-
   let html = `
-    <h3>📊 Attendance Summary (Week + Day + %)</h3>
+    <h3>📊 Weekly Attendance Report</h3>
     <table class="table">
       <tr>
         <th>Student</th>
-        ${subjects.map(s => `<th>${s}</th>`).join("")}
+        <th>Subject</th>
+        <th>Week</th>
+        <th>Days 1-5</th>
+        <th>%</th>
       </tr>
   `;
 
-  Object.keys(data).forEach(name => {
+  let atRisk = [];
 
-    html += `<tr><td><b>${name}</b></td>`;
+  Object.values(data).forEach(d => {
 
-    subjects.forEach(sub => {
+    const total = d.present + d.absent;
+    const percent = total ? Math.round((d.present / total) * 100) : 0;
 
-      const r = data[name][sub];
+    if (percent < 50) {
+      atRisk.push({ name: d.name, subject: d.subject, percent });
+    }
 
-      if (!r) {
-        html += `<td>-</td>`;
-      } else {
-
-        const percent = Math.round((r.present / r.total) * 100);
-
-        html += `
-          <td>
-            ${r.present > 0 ? "✔" : "❌"}<br>
-            Week ${r.lastWeek} | Day ${r.lastDay}<br>
-            <b>${percent}%</b>
-          </td>
-        `;
-      }
-    });
-
-    html += `</tr>`;
+    html += `
+      <tr>
+        <td>${d.name}</td>
+        <td>${d.subject}</td>
+        <td>Week ${d.week}</td>
+        <td>
+          ${d.days[1] || "-"}
+          ${d.days[2] || "-"}
+          ${d.days[3] || "-"}
+          ${d.days[4] || "-"}
+          ${d.days[5] || "-"}
+        </td>
+        <td>${percent}%</td>
+      </tr>
+    `;
   });
 
   html += `</table>`;
+
+  // 🧠 AT RISK SECTION
+  html += `<h3 style="margin-top:20px;color:red">🧠 At Risk Students (<50%)</h3>`;
+
+  if (atRisk.length === 0) {
+    html += `<p>All students are performing well ✔</p>`;
+  } else {
+    atRisk.forEach(s => {
+      html += `
+        <div class="card" style="border-left:5px solid red">
+          <b>${s.name}</b> - ${s.subject}
+          <span>${s.percent}%</span>
+        </div>
+      `;
+    });
+  }
 
   box.innerHTML = html;
 };
