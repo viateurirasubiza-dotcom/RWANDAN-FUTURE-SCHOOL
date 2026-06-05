@@ -4,6 +4,12 @@
 <title>Attendance SaaS Pro</title>
 
 <script type="module">
+  function getWeekOfMonth(date) {
+  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+  const dayOfMonth = date.getDate();
+  const week = Math.ceil((dayOfMonth + firstDay.getDay()) / 7);
+  return week;
+}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import {
   getFirestore,
@@ -146,54 +152,39 @@ window.submitAttendance = async function () {
 
   const today = new Date();
 
-  const week = Math.ceil(today.getDate() / 7);
+  const week = getWeekOfMonth(today);
 
-  let day = today.getDay();
+  let day = today.getDay(); // 0-6
 
   if (day === 0 || day === 6) {
-    alert("Attendance cannot be submitted on weekends!");
+    alert("Weekend not allowed!");
     return;
   }
 
-  const dayMap = {
-    1: 1,
-    2: 2,
-    3: 3,
-    4: 4,
-    5: 5
-  };
-
+  // Monday=1 ... Friday=5
+  const dayMap = {1:1,2:2,3:3,4:4,5:5,6:6,0:0};
   day = dayMap[day];
 
-  try {
+  for (const name in window.tempAttendance) {
 
-    for (const name in window.tempAttendance) {
-
-      await addDoc(collection(db, "attendance"), {
-        name,
-        class: cls,
-        subject: window.currentSubject,
-        status: window.tempAttendance[name],
-        date: today.toISOString().split("T")[0],
-        week,
-        day,
-        timestamp: Date.now()
-      });
-
-    }
-
-    alert("Attendance Submitted Successfully ✔");
-
-    window.tempAttendance = {};
-
-    await loadSummary(cls);
-
-  } catch (error) {
-    console.error(error);
-    alert("Error saving attendance!");
+    await addDoc(collection(db, "attendance"), {
+      name,
+      class: cls,
+      subject: window.currentSubject,
+      status: window.tempAttendance[name],
+      date: today.toISOString().split("T")[0],
+      week,
+      day,
+      timestamp: Date.now()
+    });
   }
-};
 
+  alert("Attendance saved ✔");
+
+  window.tempAttendance = {};
+
+  loadSummary(cls);
+};
   window.closeProfile = function () {
   document.getElementById("profileModal").style.display = "none";
 };
@@ -223,7 +214,6 @@ window.loadSummary = async function (cls) {
   let data = {};
 
   snap.forEach(doc => {
-
     const a = doc.data();
 
     if (a.class !== cls) return;
@@ -234,38 +224,26 @@ window.loadSummary = async function (cls) {
       data[key] = {
         name: a.name,
         subject: a.subject,
-        week: a.week || "-",
-        days: {
-          1: "-",
-          2: "-",
-          3: "-",
-          4: "-",
-          5: "-"
-        },
+        week: a.week,
+        days: {1:"-",2:"-",3:"-",4:"-",5:"-"},
         present: 0,
         absent: 0
       };
     }
 
-    if (a.day) {
-      data[key].days[a.day] =
-        a.status === "Present" ? "✔" : "❌";
+    if (a.day >= 1 && a.day <= 5) {
+      data[key].days[a.day] = a.status === "Present" ? "✔" : "❌";
     }
 
-    if (a.status === "Present") {
-      data[key].present++;
-    } else {
-      data[key].absent++;
-    }
-
+    if (a.status === "Present") data[key].present++;
+    else data[key].absent++;
   });
 
   let html = `
-  <h3>📊 Weekly Attendance Summary</h3>
-
+  <h3>📊 Weekly Attendance</h3>
   <table class="table">
     <tr>
-      <th>Student</th>
+      <th>Name</th>
       <th>Subject</th>
       <th>Week</th>
       <th>D1</th>
@@ -277,23 +255,16 @@ window.loadSummary = async function (cls) {
     </tr>
   `;
 
-  let riskHtml = "";
-  let riskFound = false;
-
   Object.values(data).forEach(item => {
 
     const total = item.present + item.absent;
-
-    const percent =
-      total > 0
-        ? Math.round((item.present / total) * 100)
-        : 0;
+    const percent = total ? Math.round((item.present / total) * 100) : 0;
 
     html += `
       <tr>
         <td>${item.name}</td>
         <td>${item.subject}</td>
-        <td>Week ${item.week}</td>
+        <td>W${item.week}</td>
         <td>${item.days[1]}</td>
         <td>${item.days[2]}</td>
         <td>${item.days[3]}</td>
@@ -302,45 +273,9 @@ window.loadSummary = async function (cls) {
         <td>${percent}%</td>
       </tr>
     `;
-
-    if (percent < 50) {
-
-      riskFound = true;
-
-      riskHtml += `
-      <div class="card"
-           style="border-left:4px solid red">
-
-        <b>${item.name}</b>
-
-        <span>
-          ${item.subject}
-          (${percent}%)
-        </span>
-
-      </div>
-      `;
-    }
-
   });
 
   html += "</table>";
-
-  html += `
-    <h3 style="margin-top:20px;color:red">
-      🧠 At Risk Students
-    </h3>
-  `;
-
-  if (riskFound) {
-    html += riskHtml;
-  } else {
-    html += `
-      <div class="card">
-        ✔ No At Risk Students
-      </div>
-    `;
-  }
 
   box.innerHTML = html;
 };
