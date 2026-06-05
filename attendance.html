@@ -132,51 +132,78 @@ window.loadStudents = async function () {
 
 window.submitAttendance = async function () {
 
-  const cls = document.getElementById("classSelect").value;
+const cls = document.getElementById("classSelect").value;
 
-  if (!cls) {
-    alert("Select class first!");
-    return;
-  }
+if (!cls) {
+alert("Select class first!");
+return;
+}
 
-  if (!window.tempAttendance || Object.keys(window.tempAttendance).length === 0) {
-    alert("No attendance selected!");
-    return;
-  }
+if (!window.tempAttendance || Object.keys(window.tempAttendance).length === 0) {
+alert("No attendance selected!");
+return;
+}
 
-  const today = new Date();
+const today = new Date();
 
-  const week = Math.ceil(today.getDate() / 7);
+// WEEK NUMBER
+const week = Math.ceil(today.getDate() / 7);
 
-  let day = today.getDay();
+// DAY NUMBER (Mon=1 ... Fri=5)
+let day = today.getDay();
 
-  if (day === 0 || day === 6) {
-    alert("Weekend not allowed!");
-    return;
-  }
+if (day === 0 || day === 6) {
+alert("Attendance cannot be submitted on weekends!");
+return;
+}
 
-  const dayMap = { 1:1, 2:2, 3:3, 4:4, 5:5 };
-  day = dayMap[day];
-
-  for (let name in window.tempAttendance) {
-
-    await addDoc(collection(db, "attendance"), {
-      name,
-      class: cls,
-      subject: window.currentSubject,
-      status: window.tempAttendance[name],
-      date: today.toISOString().split("T")[0],
-      week,
-      day
-    });
-  }
-
-  alert("Attendance Submitted ✔");
-
-  window.tempAttendance = {};
-
-  loadSummary(cls);
+const dayMap = {
+1: 1, // Monday
+2: 2, // Tuesday
+3: 3, // Wednesday
+4: 4, // Thursday
+5: 5  // Friday
 };
+
+day = dayMap[day];
+
+try {
+
+```
+for (const name in window.tempAttendance) {
+
+  await addDoc(collection(db, "attendance"), {
+    name: name,
+    class: cls,
+    subject: window.currentSubject,
+    status: window.tempAttendance[name],
+    date: today.toISOString().split("T")[0],
+    week: week,
+    day: day,
+    timestamp: Date.now()
+  });
+
+}
+
+alert("Attendance Submitted Successfully ✔");
+
+// RESET
+window.tempAttendance = {};
+
+// RELOAD SUMMARY
+await loadSummary(cls);
+```
+
+} catch (error) {
+
+```
+console.error(error);
+alert("Error saving attendance!");
+```
+
+}
+};
+
   window.closeProfile = function () {
   document.getElementById("profileModal").style.display = "none";
 };
@@ -205,8 +232,9 @@ window.loadSummary = async function (cls) {
 
   let data = {};
 
-  snap.forEach(d => {
-    let a = d.data();
+  snap.forEach(doc => {
+
+    const a = doc.data();
 
     if (a.class !== cls) return;
 
@@ -216,11 +244,22 @@ window.loadSummary = async function (cls) {
       data[key] = {
         name: a.name,
         subject: a.subject,
-        week: a.week,
+        week: a.week || "-",
+        days: {
+          1: "-",
+          2: "-",
+          3: "-",
+          4: "-",
+          5: "-"
+        },
         present: 0,
-        absent: 0,
-        days: {}
+        absent: 0
       };
+    }
+
+    if (a.day) {
+      data[key].days[a.day] =
+        a.status === "Present" ? "✔" : "❌";
     }
 
     if (a.status === "Present") {
@@ -229,66 +268,88 @@ window.loadSummary = async function (cls) {
       data[key].absent++;
     }
 
-    data[key].days[a.day] =
-      a.status === "Present" ? "✔" : "❌";
   });
 
   let html = `
-    <h3>📊 Weekly Attendance Report</h3>
-    <table class="table">
-      <tr>
-        <th>Student</th>
-        <th>Subject</th>
-        <th>Week</th>
-        <th>Days 1-5</th>
-        <th>%</th>
-      </tr>
+  <h3>📊 Weekly Attendance Summary</h3>
+
+  <table class="table">
+    <tr>
+      <th>Student</th>
+      <th>Subject</th>
+      <th>Week</th>
+      <th>D1</th>
+      <th>D2</th>
+      <th>D3</th>
+      <th>D4</th>
+      <th>D5</th>
+      <th>%</th>
+    </tr>
   `;
 
-  let atRisk = [];
+  let riskHtml = "";
+  let riskFound = false;
 
-  Object.values(data).forEach(d => {
+  Object.values(data).forEach(item => {
 
-    const total = d.present + d.absent;
-    const percent = total ? Math.round((d.present / total) * 100) : 0;
+    const total = item.present + item.absent;
 
-    if (percent < 50) {
-      atRisk.push({ name: d.name, subject: d.subject, percent });
-    }
+    const percent =
+      total > 0
+        ? Math.round((item.present / total) * 100)
+        : 0;
 
     html += `
       <tr>
-        <td>${d.name}</td>
-        <td>${d.subject}</td>
-        <td>Week ${d.week}</td>
-        <td>
-          ${d.days[1] || "-"}
-          ${d.days[2] || "-"}
-          ${d.days[3] || "-"}
-          ${d.days[4] || "-"}
-          ${d.days[5] || "-"}
-        </td>
+        <td>${item.name}</td>
+        <td>${item.subject}</td>
+        <td>Week ${item.week}</td>
+        <td>${item.days[1]}</td>
+        <td>${item.days[2]}</td>
+        <td>${item.days[3]}</td>
+        <td>${item.days[4]}</td>
+        <td>${item.days[5]}</td>
         <td>${percent}%</td>
       </tr>
     `;
+
+    if (percent < 50) {
+
+      riskFound = true;
+
+      riskHtml += `
+      <div class="card"
+           style="border-left:4px solid red">
+
+        <b>${item.name}</b>
+
+        <span>
+          ${item.subject}
+          (${percent}%)
+        </span>
+
+      </div>
+      `;
+    }
+
   });
 
-  html += `</table>`;
+  html += "</table>";
 
-  // 🧠 AT RISK SECTION
-  html += `<h3 style="margin-top:20px;color:red">🧠 At Risk Students (<50%)</h3>`;
+  html += `
+    <h3 style="margin-top:20px;color:red">
+      🧠 At Risk Students
+    </h3>
+  `;
 
-  if (atRisk.length === 0) {
-    html += `<p>All students are performing well ✔</p>`;
+  if (riskFound) {
+    html += riskHtml;
   } else {
-    atRisk.forEach(s => {
-      html += `
-        <div class="card" style="border-left:5px solid red">
-          <b>${s.name}</b> - ${s.subject}
-          <span>${s.percent}%</span>
-        </div>
-      `;
-    });
+    html += `
+      <div class="card">
+        ✔ No At Risk Students
+      </div>
+    `;
   }
 
   box.innerHTML = html;
