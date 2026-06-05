@@ -9,7 +9,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/fireba
 import {
   getFirestore,
   collection,
-  getDocs
+  getDocs,
+  addDoc,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 /* ================= FIREBASE ================= */
@@ -21,7 +24,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 window.db = db;
 
 /* ================= LOGIN ================= */
@@ -37,8 +39,8 @@ const subjectPasswords = {
 
 window.currentSubject = null;
 
+/* LOGIN */
 window.loginTeacher = function(){
-
   const subject = document.getElementById("subjectLogin").value;
   const pass = document.getElementById("password").value;
 
@@ -48,12 +50,11 @@ window.loginTeacher = function(){
   }
 
   window.currentSubject = subject;
-
   document.getElementById("loginBox").style.display="none";
   document.getElementById("app").style.display="block";
 };
 
-/* ================= CLASSES ================= */
+/* ================= LOAD CLASSES ================= */
 window.onload = function(){
   const select = document.getElementById("classSelect");
 
@@ -63,7 +64,7 @@ window.onload = function(){
   });
 };
 
-/* ================= LOAD STUDENTS (FIXED) ================= */
+/* ================= LOAD STUDENTS ================= */
 window.loadStudents = async function () {
 
   const cls = document.getElementById("classSelect").value;
@@ -75,14 +76,10 @@ window.loadStudents = async function () {
 
   const snap = await getDocs(collection(db, "classStudents"));
 
-  console.log("TOTAL:", snap.size);
-
   let found = false;
 
   snap.forEach(docSnap => {
     const s = docSnap.data();
-
-    console.log(s); // 🔥 DEBUG
 
     if (s.class === cls) {
       found = true;
@@ -91,12 +88,12 @@ window.loadStudents = async function () {
         <div class="card">
           <div>
             <b>${s.name}</b><br>
-            <span class="small">${s.class}</span>
+            <span class="small">${s.class} - ${window.currentSubject}</span>
           </div>
 
           <div>
-            <button class="present">Present</button>
-            <button class="absent">Absent</button>
+            <button onclick="mark('${s.name}','Present','${cls}')" class="present">Present</button>
+            <button onclick="mark('${s.name}','Absent','${cls}')" class="absent">Absent</button>
           </div>
         </div>
       `;
@@ -106,12 +103,67 @@ window.loadStudents = async function () {
   if (!found) {
     box.innerHTML = `<p>No students found in ${cls}</p>`;
   }
+
+  loadSummary(cls);
 };
+
+/* ================= MARK ATTENDANCE ================= */
+window.mark = async function(name, status, cls){
+
+  await addDoc(collection(db,"attendance"),{
+    name,
+    class: cls,
+    subject: window.currentSubject,
+    status,
+    date: new Date().toISOString().split("T")[0]
+  });
+
+  alert(name + " → " + status);
+
+  loadSummary(cls);
+};
+
+/* ================= SUMMARY ================= */
+window.loadSummary = async function(cls){
+
+  const box = document.getElementById("summary");
+  if(!box) return;
+
+  const snap = await getDocs(collection(db,"attendance"));
+
+  let data = {};
+
+  snap.forEach(d=>{
+    let a = d.data();
+
+    if(a.class === cls && a.subject === window.currentSubject){
+
+      if(!data[a.name]){
+        data[a.name] = {P:0,A:0};
+      }
+
+      if(a.status==="Present") data[a.name].P++;
+      else data[a.name].A++;
+    }
+  });
+
+  let html = "<h3>📊 Summary</h3>";
+
+  Object.keys(data).forEach(name=>{
+    html += `
+      <div class="card">
+        <b>${name}</b>
+        <span>✅ ${data[name].P} | ❌ ${data[name].A}</span>
+      </div>
+    `;
+  });
+
+  box.innerHTML = html;
+};
+
 </script>
 
 <style>
-
-/* SAME SAAS UI */
 body{margin:0;font-family:Segoe UI;background:#0a0f1f;color:white}
 
 #loginBox{
@@ -123,14 +175,13 @@ body{margin:0;font-family:Segoe UI;background:#0a0f1f;color:white}
   width:320px;padding:25px;border-radius:15px;
   background:rgba(255,255,255,0.08);
   backdrop-filter:blur(15px);
-  text-align:center;
 }
 
 select,input,button{
   width:100%;padding:10px;margin:6px 0;border:none;border-radius:8px;
 }
 
-button{background:#0ea5e9;color:white;cursor:pointer}
+button{cursor:pointer}
 
 #app{display:none}
 
@@ -191,6 +242,8 @@ button{background:#0ea5e9;color:white;cursor:pointer}
     <select id="classSelect" onchange="loadStudents()"></select>
 
     <div id="students"></div>
+
+    <div id="summary"></div>
 
   </div>
 
