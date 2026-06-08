@@ -1017,6 +1017,7 @@ Upload School Logo
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
 import {
   getFirestore,
   collection,
@@ -1026,9 +1027,10 @@ import {
   doc,
   setDoc,
   getDoc,
-  onSnapshot 
+  onSnapshot,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSy....",
   authDomain: "neomis-77b36.firebaseapp.com",
