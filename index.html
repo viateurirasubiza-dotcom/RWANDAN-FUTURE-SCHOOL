@@ -779,6 +779,33 @@ cursor:pointer;
   border-radius: 10px;
   cursor: pointer;
 }
+  .mis-btn{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+
+  background:linear-gradient(90deg,#00ffff,#ff00ff);
+  color:white;
+
+  font-weight:bold;
+  font-size:15px;
+
+  cursor:pointer;
+  transition:0.3s;
+
+  box-shadow:
+  0 0 10px #00ffff88,
+  0 0 20px #ff00ff55;
+}
+
+.mis-btn:hover{
+  transform:translateY(-3px);
+  box-shadow:
+  0 0 20px #00ffff,
+  0 0 35px #ff00ff;
+}
   
 
 </style>
@@ -795,30 +822,34 @@ cursor:pointer;
 <button class="menuBtn" onclick="toggleMenu()">☰</button>
 
 <div class="menu-dropdown" id="menuDropdown">
+<h3>📊 MIS Panel</h3>
 
-  <h3>📊 MIS Panel</h3>
+<label>Level</label>
+<select id="levelSelect" onchange="loadSubjects()">
+  <option value="">Select Level</option>
+  <option value="PRIMARY">PRIMARY</option>
+  <option value="SECONDARY">SECONDARY</option>
+</select>
 
-  <label>Level</label>
-  <select id="levelSelect" onchange="loadSubjects()">
-    <option value="">Select Level</option>
-    <option value="PRIMARY">PRIMARY</option>
-    <option value="SECONDARY">SECONDARY</option>
-  </select>
+<label>Subject</label>
+<select id="subjectSelect">
+  <option value="">Select Subject</option>
+</select>
 
-  <label>Subject</label>
-  <select id="subjectSelect">
-    <option value="">Select Subject</option>
-  </select>
+<button class="mis-btn" onclick="openAttendance()">
+  📋 Attendance
+</button>
 
-  <button class="att-btn" onclick="openAttendance()">
-    📋 Attendance
-  </button>
+<button class="mis-btn" onclick="openStudents()">
+  🎓 Students
+</button>
 
-  <button class="att-btn" onclick="openStudents()">
-    🎓 Students
-  </button>
- <button onclick="window.location.href='CampusConnect.html'">
-  👨‍🏫 Campus Connector
+<button class="mis-btn" onclick="window.location.href='CampusConnect.html'">
+  👨‍🏫 Campus Connect
+</button>
+
+<button class="mis-btn" onclick="window.location.href='finance.html'">
+  💰 Finance Panel
 </button>
 </div>
 </div>
@@ -2695,6 +2726,9 @@ window.toggleSidebar = function () {
 });
 window.openCampusConnect = function () {
   window.location.href = "CampusConnect.html";
+};
+  window.openFinance = function () {
+  window.location.href = "finance.html";
 };
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
