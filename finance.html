@@ -193,6 +193,10 @@ min-height:120px;
 <p>Amount Paid: 150,000 RWF</p>
 
 <button class="btn print" onclick="window.print()">🖨 Print Receipt</button>
+
+<!-- 🔥 ADDED ONLY THIS -->
+<button class="btn print" onclick="downloadReceipt()">⬇ Download Receipt</button>
+
 </div>
 
 <!-- INCOME & EXPENSES -->
@@ -276,6 +280,25 @@ box.innerHTML = `
 <p>Net: 30,000,000 RWF</p>
 `;
 }
+}
+
+/* 🔥 ADDED ONLY THIS FUNCTION */
+function downloadReceipt(){
+  const receipt = `
+RECEIPT
+--------------------
+Receipt No: RC-001
+Student: John Doe
+Amount Paid: 150,000 RWF
+--------------------
+Thank you!
+`;
+
+  const blob = new Blob([receipt], { type: "text/plain" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "receipt_RC-001.txt";
+  link.click();
 }
 </script>
 
