@@ -2160,7 +2160,6 @@ window.deleteStudent = async function (id) {
 
     if (!confirm("Are you sure you want to delete this student?")) return;
 
-    // GET STUDENT DATA
     const studentRef = doc(window.db, "students", id);
     const studentSnap = await getDoc(studentRef);
 
@@ -2171,48 +2170,52 @@ window.deleteStudent = async function (id) {
 
     const studentData = studentSnap.data();
 
-    // DELETE FROM students
+    // 1. DELETE FROM students
     await deleteDoc(studentRef);
 
-    // DELETE FROM classStudents
-    const classSnap = await getDocs(
-      collection(window.db, "classStudents")
-    );
+    // 2. DELETE FROM classStudents
+    const classSnap = await getDocs(collection(window.db, "classStudents"));
 
     const deleteTasks = [];
 
     classSnap.forEach((d) => {
-
       const data = d.data();
 
       if (
         data.name === studentData.name &&
         data.class === studentData.class
       ) {
-        deleteTasks.push(
-          deleteDoc(
-            doc(window.db, "classStudents", d.id)
-          )
-        );
+        deleteTasks.push(deleteDoc(doc(window.db, "classStudents", d.id)));
       }
-
     });
 
     await Promise.all(deleteTasks);
 
-    alert("Student deleted successfully ✔");
+    // 3. UPDATE LOCAL CACHE (IMPORTANT FIX)
+    if (window.classStudents?.[studentData.class]) {
+      window.classStudents[studentData.class] =
+        window.classStudents[studentData.class].filter(
+          n => n !== studentData.name
+        );
+    }
 
+    localStorage.setItem(
+      "classStudents",
+      JSON.stringify(window.classStudents)
+    );
+
+    // 4. FORCE REFRESH UI SAFELY
     window.load();
 
-    if (typeof window.filterTeacherSubject === "function") {
+    if (window.filterTeacherSubject) {
       window.filterTeacherSubject();
     }
 
-  } catch (err) {
+    alert("Student deleted successfully ✔");
 
+  } catch (err) {
     console.error(err);
     alert("Delete failed");
-
   }
 
 };
@@ -2381,11 +2384,13 @@ window.deleteClassStudent = async function(id) {
 window.addEventListener("DOMContentLoaded", () => {
   window.listenClassStudents();
 });
-  window.listenNotifications = function () {
+ window.listenNotifications = function () {
 
   const q = collection(db, "notifications");
 
   onSnapshot(q, (snap) => {
+
+    const lastSeen = Number(localStorage.getItem("lastNotif") || 0);
 
     snap.docChanges().forEach(change => {
 
@@ -2393,8 +2398,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
         const data = change.doc.data();
 
+        // ONLY NEW notifications
+        if (data.time <= lastSeen) return;
+
         window.notify("🔔 " + data.message);
 
+        localStorage.setItem("lastNotif", data.time);
       }
 
     });
