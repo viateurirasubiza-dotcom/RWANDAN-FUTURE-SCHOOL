@@ -1469,30 +1469,25 @@ window.filterTeacherSubject = async function () {
 
   try {
 
-    const snap = await getDocs(collection(db, "classStudents"));
+    const q = query(
+      collection(db, "students"),
+      where("class", "==", cls)
+    );
+
+    const snap = await getDocs(q);
 
     let students = [];
 
     snap.forEach(doc => {
-
-      const data = doc.data();
-
-      if (data.class === cls) {
-        students.push(data.name);
-      }
-
+      students.push(doc.data().name);
     });
 
     if (students.length === 0) {
-      container.innerHTML =
-        "<p style='color:red'>No students in this class</p>";
+      container.innerHTML = "<p style='color:red'>No students in this class</p>";
       return;
     }
 
-    let limit =
-      (teacherSubject === "P.E" || teacherSubject === "C.A")
-      ? 10
-      : 50;
+    let limit = (teacherSubject === "P.E" || teacherSubject === "C.A") ? 10 : 50;
 
     students.forEach((student, index) => {
 
@@ -1502,35 +1497,19 @@ window.filterTeacherSubject = async function () {
           <h3>${student}</h3>
 
           <label>Mid / ${limit}</label>
-          <input
-            type="number"
-            id="mid_${index}"
-            min="0"
-            max="${limit}"
-          >
+          <input type="number" id="mid_${index}_${student}" min="0" max="${limit}">
 
           <label>Exam / ${limit}</label>
-          <input
-            type="number"
-            id="exam_${index}"
-            min="0"
-            max="${limit}"
-          >
+          <input type="number" id="exam_${index}_${student}" min="0" max="${limit}">
 
         </div>
       `;
-
     });
 
   } catch (err) {
-
     console.error(err);
-
-    container.innerHTML =
-      "<p style='color:red'>Failed to load students</p>";
-
+    container.innerHTML = "<p style='color:red'>Failed to load students</p>";
   }
-
 };
 window.addStudentToClass = async function () {
 
