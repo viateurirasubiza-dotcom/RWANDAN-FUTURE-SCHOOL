@@ -207,6 +207,33 @@ min-height:120px;
     <select id="studentSelect" onchange="showStudentPayment()">
       <option value="">Select Student</option>
     </select>
+    <div class="section">
+  <h2>Add Payment</h2>
+
+  <select id="payClass" onchange="loadStudentsForPay()">
+    <option value="">Select Class</option>
+    <option value="S1">S1</option>
+    <option value="S2">S2</option>
+    <option value="S3">S3</option>
+    <option value="S4">S4</option>
+    <option value="S5">S5</option>
+    <option value="S6">S6</option>
+  </select>
+
+  <br><br>
+
+  <select id="payStudent">
+    <option value="">Select Student</option>
+  </select>
+
+  <br><br>
+
+  <input type="number" id="amountPaid" placeholder="Enter amount paid">
+
+  <br><br>
+
+  <button class="btn report" onclick="savePayment()">Save Payment</button>
+</div>
 
     <div id="paymentBox"
       style="margin-top:15px;background:white;color:black;padding:10px;border-radius:10px;">
@@ -269,6 +296,11 @@ import {
   collection,
   getDocs,
   addDoc,
+   updateDoc,
+   doc,
+   getDoc,
+  setDoc,
+   increment,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
@@ -310,10 +342,11 @@ window.logout = function () {
 };
 
 /* ================= LOAD STUDENTS ================= */
+/* ================= LOAD STUDENTS ================= */
 async function loadStudents() {
   const snap = await getDocs(collection(db, "students"));
 
-  allStudents = [];
+  window.allStudents = [];
 
   let table = document.querySelector("table");
 
@@ -326,21 +359,24 @@ async function loadStudents() {
     </tr>
   `;
 
-  snap.forEach(doc => {
-    let s = doc.data();
-    allStudents.push(s);
+  snap.forEach(docSnap => {
+    let s = docSnap.data();
+
+    window.allStudents.push({
+      id: docSnap.id,
+      ...s
+    });
 
     table.innerHTML += `
-      <tr>
-        <td>${s.name}</td>
-        <td>${s.class}</td>
+      <tr style="background:${(s.balance || 0) > 0 ? '#ffdddd' : ''}">
+        <td>${s.name || ""}</td>
+        <td>${s.class || ""}</td>
         <td>${s.paid || 0}</td>
         <td>${s.balance || 0}</td>
       </tr>
     `;
   });
 }
-
 /* ================= SELECT CLASS ================= */
 window.filterByClass = function () {
   let cls = document.getElementById("classSelect").value;
@@ -443,6 +479,161 @@ window.downloadReceipt = function () {
   a.download = "receipt.txt";
   a.click();
 };
+  window.loadStudentsForPay = function () {
+  let cls = document.getElementById("payClass").value;
+  let select = document.getElementById("payStudent");
+
+  select.innerHTML = `<option value="">Select Student</option>`;
+
+  allStudents
+    .filter(s => s.class === cls)
+    .forEach(s => {
+      let opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.name;
+      select.appendChild(opt);
+    });
+};
+
+/* ================= SAVE PAYMENT ================= */
+window.savePayment = async function () {
+
+  let studentId = document.getElementById("payStudent").value;
+  let amount = parseInt(document.getElementById("amountPaid").value);
+
+  if (!studentId || !amount) {
+    alert("Fill all fields");
+    return;
+  }
+
+  // get student doc
+  let ref = doc(db, "students", studentId);
+  let snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    alert("Student not found");
+    return;
+  }
+
+  let data = snap.data();
+
+  let newPaid = (data.paid || 0) + amount;
+  let newBalance = (data.totalFees || 0) - newPaid;
+
+  await updateDoc(ref, {
+    paid: newPaid,
+    balance: newBalance
+  });
+
+  alert("Payment saved!");
+
+  // refresh table
+  loadStudents();
+};
+  async function getReceiptNumber() {
+  const ref = doc(db, "system", "receiptCounter");
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, { value: 1 });
+    return "RC-001";
+  }
+
+  let current = snap.data().value + 1;
+
+  await updateDoc(ref, { value: current });
+
+  return "RC-" + String(current).padStart(3, "0");
+}
+  window.savePayment = async function () {
+
+  let studentId = document.getElementById("payStudent").value;
+  let amount = parseInt(document.getElementById("amountPaid").value);
+
+  if (!studentId || !amount) {
+    alert("Fill all fields");
+    return;
+  }
+
+  let studentRef = doc(db, "students", studentId);
+  let snap = await getDoc(studentRef);
+
+  let student = snap.data();
+
+  let receiptNo = await getReceiptNumber(); // 🔥 AUTO RC
+
+  // SAVE PAYMENT HISTORY
+  await addDoc(collection(db, "payments"), {
+    studentId,
+    name: student.name,
+    class: student.class,
+    amount,
+    receiptNo,
+    date: new Date()
+  });
+
+  // UPDATE STUDENT
+  let newPaid = (student.paid || 0) + amount;
+  let newBalance = (student.totalFees || 0) - newPaid;
+
+  await updateDoc(studentRef, {
+    paid: newPaid,
+    balance: newBalance
+  });
+
+  alert("Saved: " + receiptNo);
+
+  loadStudents();
+};
+  window.printReceipt = async function (receiptNo) {
+
+  const q = query(collection(db, "payments"), where("receiptNo", "==", receiptNo));
+  const snap = await getDocs(q);
+
+  let data = null;
+
+  snap.forEach(doc => {
+    data = doc.data();
+  });
+
+  if (!data) {
+    alert("Receipt not found");
+    return;
+  }
+
+  let win = window.open("", "_blank");
+
+  win.document.write(`
+    <html>
+    <head>
+      <title>Receipt</title>
+      <style>
+        body { font-family: Arial; padding:20px; }
+        .box { border:1px solid black; padding:20px; }
+      </style>
+    </head>
+    <body>
+
+      <div class="box">
+        <h2>SCHOOL RECEIPT</h2>
+        <p><b>Receipt:</b> ${data.receiptNo}</p>
+        <p><b>Name:</b> ${data.name}</p>
+        <p><b>Class:</b> ${data.class}</p>
+        <p><b>Amount:</b> ${data.amount}</p>
+        <p><b>Date:</b> ${new Date(data.date.seconds * 1000).toLocaleString()}</p>
+      </div>
+
+      <script>
+        window.print();
+      <\/script>
+
+    </body>
+    </html>
+  `);
+
+  win.document.close();
+};
+  
 </script>
 
 </body>
