@@ -185,10 +185,8 @@ min-height:120px;
 
 <!-- APP -->
 <div id="app" style="display:none;">
-  <!-- APP -->
-<div id="app" style="display:none;">
 
-  <!-- 🔽 SHYIRA HANO -->
+  <!-- 🔥 CHECK STUDENT PAYMENT -->
   <div class="section">
     <h2>Check Student Payment</h2>
 
@@ -207,38 +205,46 @@ min-height:120px;
     <select id="studentSelect" onchange="showStudentPayment()">
       <option value="">Select Student</option>
     </select>
-    <div class="section">
-  <h2>Add Payment</h2>
-
-  <select id="payClass" onchange="loadStudentsForPay()">
-    <option value="">Select Class</option>
-    <option value="S1">S1</option>
-    <option value="S2">S2</option>
-    <option value="S3">S3</option>
-    <option value="S4">S4</option>
-    <option value="S5">S5</option>
-    <option value="S6">S6</option>
-  </select>
-
-  <br><br>
-
-  <select id="payStudent">
-    <option value="">Select Student</option>
-  </select>
-
-  <br><br>
-
-  <input type="number" id="amountPaid" placeholder="Enter amount paid">
-
-  <br><br>
-
-  <button class="btn report" onclick="savePayment()">Save Payment</button>
-</div>
 
     <div id="paymentBox"
-      style="margin-top:15px;background:white;color:black;padding:10px;border-radius:10px;">
+      style="margin-top:15px;
+      background:white;
+      color:black;
+      padding:10px;
+      border-radius:10px;">
       No student selected
     </div>
+  </div>
+
+  <!-- 🔥 ADD PAYMENT -->
+  <div class="section">
+    <h2>Add Payment</h2>
+
+    <select id="payClass" onchange="loadStudentsForPay()">
+      <option value="">Select Class</option>
+      <option value="S1">S1</option>
+      <option value="S2">S2</option>
+      <option value="S3">S3</option>
+      <option value="S4">S4</option>
+      <option value="S5">S5</option>
+      <option value="S6">S6</option>
+    </select>
+
+    <br><br>
+
+    <select id="payStudent">
+      <option value="">Select Student</option>
+    </select>
+
+    <br><br>
+
+    <input type="number" id="amountPaid" placeholder="Enter amount paid">
+
+    <br><br>
+
+    <button class="btn report" onclick="savePayment()">
+      Save Payment
+    </button>
   </div>
 
 </div>
