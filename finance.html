@@ -289,6 +289,8 @@ Logout
 
 </div>
 
+
+  
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import {
@@ -296,12 +298,12 @@ import {
   collection,
   getDocs,
   addDoc,
-   updateDoc,
-   doc,
-   getDoc,
+  updateDoc,
+  doc,
+  getDoc,
   setDoc,
-   increment,
-  onSnapshot
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 /* ================= FIREBASE ================= */
@@ -317,8 +319,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ================= GLOBAL DATA ================= */
-let allStudents = [];
+/* ================= GLOBAL ================= */
+window.allStudents = [];
 
 /* ================= LOGIN ================= */
 window.login = function () {
@@ -342,7 +344,6 @@ window.logout = function () {
 };
 
 /* ================= LOAD STUDENTS ================= */
-/* ================= LOAD STUDENTS ================= */
 async function loadStudents() {
   const snap = await getDocs(collection(db, "students"));
 
@@ -359,11 +360,11 @@ async function loadStudents() {
     </tr>
   `;
 
-  snap.forEach(docSnap => {
-    let s = docSnap.data();
+  snap.forEach(d => {
+    let s = d.data();
 
     window.allStudents.push({
-      id: docSnap.id,
+      id: d.id,
       ...s
     });
 
@@ -377,115 +378,15 @@ async function loadStudents() {
     `;
   });
 }
-/* ================= SELECT CLASS ================= */
+
+/* ================= CLASS FILTER ================= */
 window.filterByClass = function () {
   let cls = document.getElementById("classSelect").value;
-
-  let studentSelect = document.getElementById("studentSelect");
-  studentSelect.innerHTML = `<option value="">Select Student</option>`;
-
-  let filtered = allStudents.filter(s => s.class === cls);
-
-  filtered.forEach(s => {
-    let opt = document.createElement("option");
-    opt.value = s.sdms || s.name;
-    opt.textContent = s.name;
-    studentSelect.appendChild(opt);
-  });
-};
-
-/* ================= SHOW PAYMENT ================= */
-window.showStudentPayment = function () {
-  let id = document.getElementById("studentSelect").value;
-
-  let student = allStudents.find(s =>
-    (s.sdms === id) || (s.name === id)
-  );
-
-  let box = document.getElementById("paymentBox");
-
-  if (!student) {
-    box.innerHTML = "No student selected";
-    return;
-  }
-
-  box.innerHTML = `
-    <b>Name:</b> ${student.name}<br>
-    <b>Class:</b> ${student.class}<br><br>
-    <b>Paid:</b> ${student.paid || 0} RWF<br>
-    <b>Balance:</b> ${student.balance || 0} RWF
-  `;
-};
-
-/* ================= FINANCE LIVE ================= */
-function listenFinance() {
-  onSnapshot(collection(db, "finance"), (snap) => {
-    let income = 0;
-    let expenses = 0;
-
-    snap.forEach(doc => {
-      let d = doc.data();
-      income += d.income || 0;
-      expenses += d.expenses || 0;
-    });
-
-    let balance = income - expenses;
-
-    document.querySelector(".card:nth-child(2) h2").innerText =
-      income.toLocaleString() + " RWF";
-
-    document.querySelector(".card:nth-child(3) h2").innerText =
-      balance.toLocaleString() + " RWF";
-
-    document.querySelector(".card:nth-child(5) h2").innerText =
-      expenses.toLocaleString() + " RWF";
-
-    document.querySelector(".card:nth-child(6) h2").innerText =
-      balance.toLocaleString() + " RWF";
-  });
-}
-
-/* ================= ADD FINANCE ================= */
-window.addFinance = async function () {
-  await addDoc(collection(db, "finance"), {
-    income: 500000,
-    expenses: 200000,
-    date: new Date()
-  });
-
-  alert("Saved!");
-};
-
-/* ================= PARTICLES ================= */
-function createParticles() {
-  let c = document.getElementById("particles");
-
-  for (let i = 0; i < 40; i++) {
-    let p = document.createElement("div");
-    p.className = "particle";
-    p.style.left = Math.random() * 100 + "%";
-    p.style.animationDuration = (5 + Math.random() * 10) + "s";
-    c.appendChild(p);
-  }
-}
-createParticles();
-
-/* ================= RECEIPT ================= */
-window.downloadReceipt = function () {
-  const t = "Receipt RC-001\nJohn Doe\n150,000 RWF";
-  const b = new Blob([t], { type: "text/plain" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(b);
-  a.download = "receipt.txt";
-  a.click();
-};
-  window.loadStudentsForPay = function () {
-  let cls = document.getElementById("payClass").value;
-  let select = document.getElementById("payStudent");
+  let select = document.getElementById("studentSelect");
 
   select.innerHTML = `<option value="">Select Student</option>`;
 
-  allStudents
+  window.allStudents
     .filter(s => s.class === cls)
     .forEach(s => {
       let opt = document.createElement("option");
@@ -495,42 +396,29 @@ window.downloadReceipt = function () {
     });
 };
 
-/* ================= SAVE PAYMENT ================= */
-window.savePayment = async function () {
+/* ================= SHOW PAYMENT ================= */
+window.showStudentPayment = function () {
+  let id = document.getElementById("studentSelect").value;
 
-  let studentId = document.getElementById("payStudent").value;
-  let amount = parseInt(document.getElementById("amountPaid").value);
+  let s = window.allStudents.find(x => x.id === id);
 
-  if (!studentId || !amount) {
-    alert("Fill all fields");
+  let box = document.getElementById("paymentBox");
+
+  if (!s) {
+    box.innerHTML = "No student selected";
     return;
   }
 
-  // get student doc
-  let ref = doc(db, "students", studentId);
-  let snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    alert("Student not found");
-    return;
-  }
-
-  let data = snap.data();
-
-  let newPaid = (data.paid || 0) + amount;
-  let newBalance = (data.totalFees || 0) - newPaid;
-
-  await updateDoc(ref, {
-    paid: newPaid,
-    balance: newBalance
-  });
-
-  alert("Payment saved!");
-
-  // refresh table
-  loadStudents();
+  box.innerHTML = `
+    <b>Name:</b> ${s.name}<br>
+    <b>Class:</b> ${s.class}<br>
+    <b>Paid:</b> ${s.paid || 0}<br>
+    <b>Balance:</b> ${s.balance || 0}
+  `;
 };
-  async function getReceiptNumber() {
+
+/* ================= RECEIPT NUMBER ================= */
+async function getReceiptNumber() {
   const ref = doc(db, "system", "receiptCounter");
   const snap = await getDoc(ref);
 
@@ -539,62 +427,69 @@ window.savePayment = async function () {
     return "RC-001";
   }
 
-  let current = snap.data().value + 1;
+  let next = snap.data().value + 1;
 
-  await updateDoc(ref, { value: current });
+  await updateDoc(ref, { value: next });
 
-  return "RC-" + String(current).padStart(3, "0");
+  return "RC-" + String(next).padStart(3, "0");
 }
-  window.savePayment = async function () {
+
+/* ================= SAVE PAYMENT (FINAL FIX) ================= */
+window.savePayment = async function () {
 
   let studentId = document.getElementById("payStudent").value;
-  let amount = parseInt(document.getElementById("amountPaid").value);
+  let amount = Number(document.getElementById("amountPaid").value);
 
   if (!studentId || !amount) {
     alert("Fill all fields");
     return;
   }
 
-  let studentRef = doc(db, "students", studentId);
-  let snap = await getDoc(studentRef);
+  let ref = doc(db, "students", studentId);
+  let snap = await getDoc(ref);
 
-  let student = snap.data();
+  if (!snap.exists()) {
+    alert("Student not found");
+    return;
+  }
 
-  let receiptNo = await getReceiptNumber(); // 🔥 AUTO RC
+  let s = snap.data();
 
-  // SAVE PAYMENT HISTORY
+  let receiptNo = await getReceiptNumber();
+
+  let newPaid = (s.paid || 0) + amount;
+  let newBalance = (s.totalFees || 0) - newPaid;
+
+  /* SAVE PAYMENT HISTORY */
   await addDoc(collection(db, "payments"), {
     studentId,
-    name: student.name,
-    class: student.class,
+    name: s.name,
+    class: s.class,
     amount,
     receiptNo,
     date: new Date()
   });
 
-  // UPDATE STUDENT
-  let newPaid = (student.paid || 0) + amount;
-  let newBalance = (student.totalFees || 0) - newPaid;
-
-  await updateDoc(studentRef, {
+  /* UPDATE STUDENT */
+  await updateDoc(ref, {
     paid: newPaid,
     balance: newBalance
   });
 
-  alert("Saved: " + receiptNo);
+  alert("Saved Receipt: " + receiptNo);
 
   loadStudents();
 };
-  window.printReceipt = async function (receiptNo) {
+
+/* ================= RECEIPT PRINT ================= */
+window.printReceipt = async function (receiptNo) {
 
   const q = query(collection(db, "payments"), where("receiptNo", "==", receiptNo));
   const snap = await getDocs(q);
 
   let data = null;
 
-  snap.forEach(doc => {
-    data = doc.data();
-  });
+  snap.forEach(d => data = d.data());
 
   if (!data) {
     alert("Receipt not found");
@@ -608,33 +503,48 @@ window.savePayment = async function () {
     <head>
       <title>Receipt</title>
       <style>
-        body { font-family: Arial; padding:20px; }
-        .box { border:1px solid black; padding:20px; }
+        body{font-family:Arial;padding:20px;}
+        .box{border:1px solid #000;padding:20px;}
       </style>
     </head>
     <body>
-
       <div class="box">
-        <h2>SCHOOL RECEIPT</h2>
-        <p><b>Receipt:</b> ${data.receiptNo}</p>
-        <p><b>Name:</b> ${data.name}</p>
-        <p><b>Class:</b> ${data.class}</p>
-        <p><b>Amount:</b> ${data.amount}</p>
-        <p><b>Date:</b> ${new Date(data.date.seconds * 1000).toLocaleString()}</p>
+        <h2>RECEIPT</h2>
+        <p>Receipt: ${data.receiptNo}</p>
+        <p>Name: ${data.name}</p>
+        <p>Class: ${data.class}</p>
+        <p>Amount: ${data.amount}</p>
+        <p>Date: ${new Date(data.date.seconds * 1000).toLocaleString()}</p>
       </div>
 
-      <script>
-        window.print();
-      <\/script>
-
+      <script>window.print();</script>
     </body>
     </html>
   `);
 
   win.document.close();
 };
-  
-</script>
 
+/* ================= FINANCE LIVE ================= */
+function listenFinance() {
+  onSnapshot(collection(db, "finance"), (snap) => {
+    let income = 0;
+    let expenses = 0;
+
+    snap.forEach(d => {
+      income += d.data().income || 0;
+      expenses += d.data().expenses || 0;
+    });
+
+    let balance = income - expenses;
+
+    document.querySelector(".card:nth-child(2) h2").innerText = income.toLocaleString() + " RWF";
+    document.querySelector(".card:nth-child(3) h2").innerText = balance.toLocaleString() + " RWF";
+    document.querySelector(".card:nth-child(5) h2").innerText = expenses.toLocaleString() + " RWF";
+    document.querySelector(".card:nth-child(6) h2").innerText = balance.toLocaleString() + " RWF";
+  });
+}
+
+</script>
 </body>
 </html>
