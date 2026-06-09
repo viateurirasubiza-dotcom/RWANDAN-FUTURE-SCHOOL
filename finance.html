@@ -3,23 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Finance Panel</title>
+<title>Finance Dashboard</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
+
 body{
 background:linear-gradient(135deg,#050510,#0a1a2f);
-color:white;min-height:100vh;
+color:white;
+min-height:100vh;
 }
 
 /* LOGIN */
 #loginBox{
-position:fixed;top:50%;left:50%;
+position:fixed;
+top:50%;
+left:50%;
 transform:translate(-50%,-50%);
-padding:30px;
 background:#000000cc;
-border-radius:15px;
+padding:25px;
+border-radius:12px;
 z-index:999;
+text-align:center;
+}
+
+input,select{
+padding:10px;
+margin:5px;
+width:200px;
+border-radius:6px;
+border:none;
+}
+
+/* APP */
+#app{
+display:none;
+padding:20px;
+}
+
+.section{
+background:rgba(255,255,255,0.08);
+padding:15px;
+margin:15px 0;
+border-radius:10px;
 }
 
 /* DASHBOARD */
@@ -29,23 +60,19 @@ grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
 gap:15px;
 padding:20px;
 }
+
 .card{
-background:rgba(255,255,255,0.08);
-padding:15px;border-radius:10px;
+background:rgba(255,255,255,0.1);
+padding:15px;
+border-radius:10px;
 text-align:center;
 }
-
-/* SECTIONS */
-.section{
-margin:20px;
-padding:15px;
-background:rgba(255,255,255,0.08);
-border-radius:10px;
-}
-
 button{
 padding:10px;
+margin-top:10px;
 cursor:pointer;
+border:none;
+border-radius:6px;
 }
 </style>
 </head>
@@ -54,30 +81,30 @@ cursor:pointer;
 
 <!-- LOGIN -->
 <div id="loginBox">
-<h2>Login</h2>
-<input id="username" placeholder="Username"><br><br>
-<input id="password" type="password" placeholder="Password"><br><br>
+<h2>Finance Login</h2>
+<input id="username" placeholder="Username"><br>
+<input id="password" type="password" placeholder="Password"><br>
 <button onclick="login()">Login</button>
 <p id="error"></p>
 </div>
 
 <!-- APP -->
-<div id="app" style="display:none;">
+<div id="app">
 
 <div class="section">
 <h2>Check Payment</h2>
 
 <select id="classSelect" onchange="filterByClass()">
-<option value="">Class</option>
+<option value="">All Classes</option>
 <option>S1</option><option>S2</option><option>S3</option>
 <option>S4</option><option>S5</option><option>S6</option>
 </select>
 
-<br><br>
+<br>
 
 <select id="studentSelect" onchange="showStudentPayment()"></select>
 
-<div id="paymentBox">No student selected</div>
+<div id="paymentBox">Select student</div>
 </div>
 
 <div class="section">
@@ -89,26 +116,37 @@ cursor:pointer;
 <option>S4</option><option>S5</option><option>S6</option>
 </select>
 
-<br><br>
+<br>
 
 <select id="payStudent"></select>
 
-<br><br>
+<br>
 
 <input id="amountPaid" type="number" placeholder="Amount">
 
-<br><br>
+<br>
 
-<button onclick="savePayment()">Save</button>
+<button onclick="savePayment()">Save Payment</button>
 </div>
 
 </div>
 
 <!-- DASHBOARD -->
 <div class="dashboard">
-<div class="card"><h3>Students</h3><h2 id="studentsCount">0</h2></div>
-<div class="card"><h3>Income</h3><h2 id="income">0</h2></div>
-<div class="card"><h3>Balance</h3><h2 id="balance">0</h2></div>
+<div class="card">
+<h3>Students</h3>
+<h2 id="studentsCount">0</h2>
+</div>
+
+<div class="card">
+<h3>Total Income</h3>
+<h2 id="income">0</h2>
+</div>
+
+<div class="card">
+<h3>Balance</h3>
+<h2 id="balance">0</h2>
+</div>
 </div>
 
 <script type="module">
@@ -124,30 +162,32 @@ getDoc,
 onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-/* FIREBASE */
+/* 🔥 FIREBASE CONFIG (REPLACE THIS) */
 const firebaseConfig = {
-apiKey:"AIzaSy....",
-authDomain:"neomis-77b36.firebaseapp.com",
-projectId:"neomis-77b36"
+  apiKey: "AIzaSy....",
+  authDomain: "neomis-77b36.firebaseapp.com",
+  projectId: "neomis-77b36",
+  storageBucket: "neomis-77b36.firebasestorage.app",
+  messagingSenderId: "836047126207",
+  appId: "1:836047126207:web:df890a577383585698100a"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 window.allStudents = [];
 
 /* LOGIN */
-window.login = function(){
-let u=document.getElementById("username").value;
-let p=document.getElementById("password").value;
+window.login = async function(){
+const u = username.value;
+const p = password.value;
 
 if(u==="admin" && p==="1234"){
-document.getElementById("loginBox").style.display="none";
-document.getElementById("app").style.display="block";
-loadStudents();
+loginBox.style.display="none";
+app.style.display="block";
+await loadStudents();
 listenFinance();
 }else{
-document.getElementById("error").innerText="Wrong login";
+error.innerText="Wrong credentials";
 }
 };
 
@@ -155,83 +195,94 @@ document.getElementById("error").innerText="Wrong login";
 async function loadStudents(){
 const snap = await getDocs(collection(db,"students"));
 
-window.allStudents = [];
+allStudents = [];
 
-let select = document.getElementById("studentSelect");
-select.innerHTML="";
+studentSelect.innerHTML="";
+payStudent.innerHTML="";
 
 snap.forEach(d=>{
-let s=d.data();
-window.allStudents.push({id:d.id,...s});
+const s = d.data();
+allStudents.push({id:d.id,...s});
 
-let opt=document.createElement("option");
-opt.value=d.id;
-opt.textContent=s.name;
-select.appendChild(opt);
+const opt = document.createElement("option");
+opt.value = d.id;
+opt.textContent = s.name;
+studentSelect.appendChild(opt);
 });
 
-document.getElementById("studentsCount").innerText = window.allStudents.length;
+studentsCount.innerText = allStudents.length;
 }
 
 /* FILTER */
-window.filterByClass=function(){
-let cls=document.getElementById("classSelect").value;
+window.filterByClass = function(){
+const cls = classSelect.value;
 
-let select=document.getElementById("studentSelect");
-select.innerHTML="";
+studentSelect.innerHTML="";
 
-window.allStudents.filter(s=>s.class===cls)
+(allStudents.filter(s=>!cls || s.class===cls))
 .forEach(s=>{
-let opt=document.createElement("option");
+const opt=document.createElement("option");
 opt.value=s.id;
 opt.textContent=s.name;
-select.appendChild(opt);
+studentSelect.appendChild(opt);
 });
 };
 
 /* SHOW PAYMENT */
-window.showStudentPayment=function(){
-let id=document.getElementById("studentSelect").value;
-let s=window.allStudents.find(x=>x.id===id);
+window.showStudentPayment = function(){
+const id = studentSelect.value;
+const s = allStudents.find(x=>x.id===id);
 
-document.getElementById("paymentBox").innerHTML =
-s ? `${s.name} | Paid: ${s.paid||0} | Balance: ${s.balance||0}`
-: "No student selected";
+if(!s){
+paymentBox.innerHTML="No student";
+return;
+}
+
+const paid = s.paid || 0;
+const balance = s.balance || ((s.totalFees||0)-paid);
+
+paymentBox.innerHTML=`
+<b>${s.name}</b><br>
+Paid: ${paid}<br>
+Balance: ${balance}
+`;
 };
 
 /* LOAD PAY STUDENTS */
-window.loadStudentsForPay=function(){
-let cls=document.getElementById("payClass").value;
-let select=document.getElementById("payStudent");
+window.loadStudentsForPay = function(){
+const cls = payClass.value;
+payStudent.innerHTML="";
 
-select.innerHTML="";
-
-window.allStudents.filter(s=>s.class===cls)
+(allStudents.filter(s=>!cls || s.class===cls))
 .forEach(s=>{
-let opt=document.createElement("option");
+const opt=document.createElement("option");
 opt.value=s.id;
 opt.textContent=s.name;
-select.appendChild(opt);
+payStudent.appendChild(opt);
 });
 };
 
 /* SAVE PAYMENT */
 window.savePayment = async function(){
 
-let id=document.getElementById("payStudent").value;
-let amount=Number(document.getElementById("amountPaid").value);
+const id = payStudent.value;
+const amount = Number(amountPaid.value);
 
-if(!id||!amount) return alert("Fill all");
+if(!id || amount<=0){
+alert("Enter valid data");
+return;
+}
 
-let ref=doc(db,"students",id);
-let snap=await getDoc(ref);
+const ref = doc(db,"students",id);
+const snap = await getDoc(ref);
 
-if(!snap.exists()) return alert("Not found");
+if(!snap.exists()) return alert("Student not found");
 
-let s=snap.data();
+const s = snap.data();
 
-let newPaid=(s.paid||0)+amount;
-let newBalance=(s.totalFees||100000)-(newPaid);
+const newPaid = (s.paid||0)+amount;
+const total = s.totalFees||100000;
+const newBalance = total - newPaid;
 
 await updateDoc(ref,{
 paid:newPaid,
@@ -247,10 +298,11 @@ date:new Date()
 });
 
 alert("Payment saved");
-loadStudents();
+
+await loadStudents();
 };
 
-/* FINANCE */
+/* FINANCE LISTENER */
 function listenFinance(){
 onSnapshot(collection(db,"finance"),snap=>{
 let income=0,expenses=0;
@@ -260,8 +312,8 @@ income+=d.data().income||0;
 expenses+=d.data().expenses||0;
 });
 
-document.getElementById("income").innerText=income;
-document.getElementById("balance").innerText=income-expenses;
+incomeEl.innerText=income;
+balanceEl.innerText=income-expenses;
 });
 }
 
