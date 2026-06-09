@@ -232,54 +232,142 @@ Logout
 
 </div>
 
-<script>
-function login(){
-let u=document.getElementById("username").value;
-let p=document.getElementById("password").value;
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-if(u==="admin" && p==="1234"){
-document.getElementById("loginBox").style.display="none";
-document.getElementById("app").style.display="block";
-}else{
-document.getElementById("error").innerText="Wrong login!";
-}
+/* ================= FIREBASE CONFIG ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSy....",
+  authDomain: "neomis-77b36.firebaseapp.com",
+  projectId: "neomis-77b36",
+  storageBucket: "neomis-77b36.firebasestorage.app",
+  messagingSenderId: "836047126207",
+  appId: "1:836047126207:web:df890a577383585698100a"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ================= LOGIN ================= */
+window.login = function () {
+  let u = document.getElementById("username").value;
+  let p = document.getElementById("password").value;
+
+  if (u === "admin" && p === "1234") {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("app").style.display = "block";
+
+    loadStudents();
+    listenFinance();
+  } else {
+    document.getElementById("error").innerText = "Wrong login!";
+  }
+};
+
+window.logout = function () {
+  document.getElementById("app").style.display = "none";
+  document.getElementById("loginBox").style.display = "flex";
+};
+
+/* ================= STUDENTS FROM FIREBASE ================= */
+async function loadStudents() {
+  let table = document.querySelector("table");
+
+  table.innerHTML = `
+    <tr>
+      <th>Student</th>
+      <th>Class</th>
+      <th>Paid</th>
+      <th>Balance</th>
+    </tr>
+  `;
+
+  const snap = await getDocs(collection(db, "students"));
+
+  snap.forEach(doc => {
+    let s = doc.data();
+
+    table.innerHTML += `
+      <tr>
+        <td>${s.name || ""}</td>
+        <td>${s.class || ""}</td>
+        <td>${s.paid || 0}</td>
+        <td>${s.balance || 0}</td>
+      </tr>
+    `;
+  });
 }
 
-function logout(){
-document.getElementById("app").style.display="none";
-document.getElementById("loginBox").style.display="flex";
+/* ================= FINANCE (SAVINCE DATA REAL TIME) ================= */
+function listenFinance() {
+  onSnapshot(collection(db, "finance"), (snap) => {
+    let income = 0;
+    let expenses = 0;
+
+    snap.forEach(doc => {
+      let d = doc.data();
+      income += d.income || 0;
+      expenses += d.expenses || 0;
+    });
+
+    let balance = income - expenses;
+
+    document.querySelector(".card:nth-child(2) h2").innerText =
+      income.toLocaleString() + " RWF";
+
+    document.querySelector(".card:nth-child(3) h2").innerText =
+      balance.toLocaleString() + " RWF";
+
+    document.querySelector(".card:nth-child(5) h2").innerText =
+      expenses.toLocaleString() + " RWF";
+
+    document.querySelector(".card:nth-child(6) h2").innerText =
+      balance.toLocaleString() + " RWF";
+  });
 }
 
-function showReport(t){
-let b=document.getElementById("reportBox");
+/* ================= ADD FINANCE (SAVINCE USE) ================= */
+window.addFinance = async function () {
+  await addDoc(collection(db, "finance"), {
+    income: 500000,
+    expenses: 200000,
+    date: new Date()
+  });
 
-if(t==="daily") b.innerHTML="Daily Income 500k";
-else if(t==="weekly") b.innerHTML="Weekly 3.5M";
-else if(t==="monthly") b.innerHTML="Monthly 12M";
-else if(t==="term") b.innerHTML="Term 35M";
-else b.innerHTML="Annual 50M";
-}
+  alert("Finance saved!");
+};
 
-function createParticles(){
-let c=document.getElementById("particles");
-for(let i=0;i<40;i++){
-let p=document.createElement("div");
-p.className="particle";
-p.style.left=Math.random()*100+"%";
-p.style.animationDuration=(5+Math.random()*10)+"s";
-c.appendChild(p);
-}
+/* ================= PARTICLES ================= */
+function createParticles() {
+  let c = document.getElementById("particles");
+
+  for (let i = 0; i < 40; i++) {
+    let p = document.createElement("div");
+    p.className = "particle";
+    p.style.left = Math.random() * 100 + "%";
+    p.style.animationDuration = (5 + Math.random() * 10) + "s";
+    c.appendChild(p);
+  }
 }
 createParticles();
 
-function downloadReceipt(){
-const t="Receipt RC-001\nJohn Doe\n150,000 RWF";
-const b=new Blob([t],{type:"text/plain"});
-const a=document.createElement("a");
-a.href=URL.createObjectURL(b);
-a.download="receipt.txt";
-a.click();
-}
+/* ================= RECEIPT ================= */
+window.downloadReceipt = function () {
+  const t = "Receipt RC-001\nJohn Doe\n150,000 RWF";
+  const b = new Blob([t], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(b);
+  a.download = "receipt.txt";
+  a.click();
+};
+
 </script>
 
 </body>
