@@ -3,321 +3,636 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Finance Dashboard</title>
+<title>School ERP Finance Dashboard</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- XLSX -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial;
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+body{display:flex;background:#f4f6f9;}
+.sidebar{width:250px;height:100vh;background:#1e293b;color:white;position:fixed;}
+.sidebar h2{text-align:center;padding:20px;background:#0f172a;}
+.sidebar ul{list-style:none;}
+.sidebar ul li{padding:15px 20px;border-bottom:1px solid rgba(255,255,255,0.1);cursor:pointer;transition:0.3s;}
+.sidebar ul li:hover{background:#334155;}
+.sidebar ul li.active{background:#2563eb;}
+.main{margin-left:250px;width:calc(100% - 250px);padding:20px;}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.header h1{color:#1e293b;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:25px;}
+.card{background:white;padding:20px;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.card h3{color:#555;margin-bottom:10px;}
+.card p{font-size:24px;font-weight:bold;color:#16a34a;}
+.section{background:white;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.section h2{margin-bottom:15px;color:#1e293b;}
+.form-group{margin-bottom:15px;}
+input, select{width:100%;padding:10px;border:1px solid #ccc;border-radius:5px;}
+button{background:#2563eb;color:white;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;margin-right:5px;}
+button:hover{background:#1d4ed8;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+table th, table td{border:1px solid #ddd;padding:10px;text-align:left;}
+table th{background:#2563eb;color:white;}
+tr:nth-child(even){background:#f9fafb;}
+.dark body{background:#111827;color:white;}
+.dark .card, .dark .section{background:#1f2937;color:white;}
+.dark table th{background:#374151;color:white;}
+@media(max-width:768px){
+.sidebar{width:70px;}
+.main{margin-left:70px;width:calc(100% - 70px);}
+.cards{grid-template-columns:1fr;}
+table{display:block;overflow-x:auto;}
 }
-
-body{
-background:linear-gradient(135deg,#050510,#0a1a2f);
-color:white;
-min-height:100vh;
-}
-
-/* LOGIN */
-#loginBox{
-position:fixed;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-background:#000000cc;
-padding:25px;
-border-radius:12px;
-z-index:999;
-text-align:center;
-}
-
-input,select{
-padding:10px;
-margin:5px;
-width:200px;
-border-radius:6px;
-border:none;
-}
-
-/* APP */
-#app{
-display:none;
-padding:20px;
-}
-
-.section{
-background:rgba(255,255,255,0.08);
-padding:15px;
-margin:15px 0;
-border-radius:10px;
-}
-
-/* DASHBOARD */
-.dashboard{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:15px;
-padding:20px;
-}
-
-.card{
-background:rgba(255,255,255,0.1);
-padding:15px;
-border-radius:10px;
-text-align:center;
-}
-button{
-padding:10px;
-margin-top:10px;
-cursor:pointer;
-border:none;
-border-radius:6px;
-}
+.hidden{display:none;}
 </style>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div id="loginBox">
-<h2>Finance Login</h2>
-<input id="username" placeholder="Username"><br>
-<input id="password" type="password" placeholder="Password"><br>
-<button onclick="login()">Login</button>
-<p id="error"></p>
+<!-- Sidebar -->
+<div class="sidebar">
+<h2>School ERP</h2>
+<ul>
+<li class="active">Dashboard</li>
+<li>Students</li>
+<li>Teachers</li>
+<li>Attendance</li>
+<li>Finance</li>
+<li>Reports</li>
+<li>Settings</li>
+</ul>
 </div>
 
-<!-- APP -->
-<div id="app">
+<div class="main">
 
-<div class="section">
-<h2>Check Payment</h2>
-
-<select id="classSelect" onchange="filterByClass()">
-<option value="">All Classes</option>
-<option>S1</option><option>S2</option><option>S3</option>
-<option>S4</option><option>S5</option><option>S6</option>
-</select>
-
-<br>
-
-<select id="studentSelect" onchange="showStudentPayment()"></select>
-
-<div id="paymentBox">Select student</div>
+<!-- DASHBOARD PAGE -->
+<div class="page" id="dashboardPage">
+  <h2>Dashboard</h2>
+  <p>Welcome to School ERP</p>
 </div>
 
-<div class="section">
-<h2>Add Payment</h2>
-
-<select id="payClass" onchange="loadStudentsForPay()">
-<option value="">Class</option>
-<option>S1</option><option>S2</option><option>S3</option>
-<option>S4</option><option>S5</option><option>S6</option>
-</select>
-
-<br>
-
-<select id="payStudent"></select>
-
-<br>
-
-<input id="amountPaid" type="number" placeholder="Amount">
-
-<br>
-
-<button onclick="savePayment()">Save Payment</button>
+<!-- STUDENTS -->
+<div class="page hidden" id="studentsPage">
+  <h2>Students Module</h2>
 </div>
 
+<!-- TEACHERS -->
+<div class="page hidden" id="teachersPage">
+  <h2>Teachers Module</h2>
 </div>
 
-<!-- DASHBOARD -->
-<div class="dashboard">
-<div class="card">
-<h3>Students</h3>
-<h2 id="studentsCount">0</h2>
+<!-- ATTENDANCE -->
+<div class="page hidden" id="attendancePage">
+  <h2>Attendance Module</h2>
 </div>
 
+<!-- FINANCE -->
+<div class="page hidden" id="financePage">
+
+<h1>Finance Management</h1>
+<div>
+<button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+<button onclick="exportExcel()">Export Excel</button>
+</div>
+
+<!-- Dashboard Cards -->
+<div class="cards">
 <div class="card">
 <h3>Total Income</h3>
-<h2 id="income">0</h2>
+<p id="totalIncome">0 RWF</p>
 </div>
-
 <div class="card">
-<h3>Balance</h3>
-<h2 id="balance">0</h2>
+<h3>Total Expenses</h3>
+<p id="totalExpenses">0 RWF</p>
+</div>
+<div class="card">
+<h3>Pending Fees</h3>
+<p id="pendingFees">0 RWF</p>
+</div>
+<div class="card">
+<h3>Current Balance</h3>
+<p id="currentBalance">0 RWF</p>
 </div>
 </div>
+<div class="section">
+  <h2>Record Payment</h2>
+  <form id="paymentForm">
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import {
-getFirestore,
-collection,
-getDocs,
-addDoc,
-updateDoc,
-doc,
-getDoc,
-onSnapshot
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    <div class="form-group">
+      <select id="classSelect" required>
+        <option value="">-- Select Class --</option>
+      </select>
+    </div>
 
-/* 🔥 FIREBASE CONFIG (REPLACE THIS) */
-const firebaseConfig = {
-  apiKey: "AIzaSy....",
-  authDomain: "neomis-77b36.firebaseapp.com",
-  projectId: "neomis-77b36",
-  storageBucket: "neomis-77b36.firebasestorage.app",
-  messagingSenderId: "836047126207",
-  appId: "1:836047126207:web:df890a577383585698100a"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    <div class="form-group">
+      <select id="studentSelect" required>
+        <option value="">-- Select Student --</option>
+      </select>
+    </div>
 
-window.allStudents = [];
+    <div class="form-group">
+      <input type="number" id="totalFee" placeholder="Total Fee" disabled>
+    </div>
 
-/* LOGIN */
-window.login = async function(){
-const u = username.value;
-const p = password.value;
+    <div class="form-group">
+      <input type="number" id="paidAmount" placeholder="Already Paid" disabled>
+    </div>
 
-if(u==="admin" && p==="1234"){
-loginBox.style.display="none";
-app.style.display="block";
-await loadStudents();
-listenFinance();
-}else{
-error.innerText="Wrong credentials";
+    <div class="form-group">
+      <input type="number" id="pendingAmount" placeholder="Pending Amount" disabled>
+    </div>
+
+    <div class="form-group">
+      <input type="number" id="amountPaid" placeholder="Amount to Pay" required>
+    </div>
+
+    <div class="form-group">
+      <input type="date" id="paymentDate" required>
+    </div>
+
+    <button type="submit">Save Payment</button>
+  </form>
+</div>
+
+<!-- Record Expense -->
+<div class="section">
+  <h2>Record Expense</h2>
+  <form id="expenseForm">
+    <div class="form-group">
+      <select id="expenseCategory" required>
+        <option value="">-- Select Category --</option>
+        <option value="Salaries">Salaries</option>
+        <option value="Electricity">Electricity</option>
+        <option value="Water">Water</option>
+        <option value="Stationery">Stationery</option>
+        <option value="Transport">Transport</option>
+        <option value="Maintenance">Maintenance</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <select id="expenseType" required>
+        <option value="">-- Expense Type --</option>
+        <option value="Fixed">Fixed</option>
+        <option value="Variable">Variable</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <input type="number" id="expenseAmount" placeholder="Amount (RWF)" required>
+    </div>
+    <div class="form-group">
+      <input type="text" id="expenseDesc" placeholder="Description" required>
+    </div>
+    <div class="form-group">
+      <input type="date" id="expenseDate" required>
+    </div>
+    <button type="submit">Save Expense</button>
+  </form>
+</div>
+
+<!-- Fee Status Table -->
+<div class="section">
+<h2>Student Fee Status</h2>
+<input type="text" id="searchStudent" placeholder="Search student...">
+<table id="studentFeeTable">
+<thead>
+<tr>
+<th>Student</th>
+<th>Class</th>
+<th>Total Fee</th>
+<th>Paid</th>
+<th>Balance</th>
+<th>Status</th>
+<th>Receipt</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+
+<!-- Income vs Expense Chart -->
+<div class="section">
+<h2>Income vs Expenses</h2>
+<canvas id="financeChart"></canvas>
+</div>
+
+</div> <!-- END FINANCE PAGE -->
+
+<!-- REPORTS -->
+<div class="page hidden" id="reportsPage">
+  <h2>Reports Module</h2>
+</div>
+
+<!-- SETTINGS -->
+<div class="page hidden" id="settingsPage">
+  <h2>Settings</h2>
+</div>
+
+</div> <!-- END MAIN -->
+
+<!-- Firebase App & Firestore -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- XLSX (Excel) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<script>
+  // ================== FIREBASE CONFIG ==================
+  const firebaseConfig = {
+    apiKey: "AIzaSy....",
+    authDomain: "neomis-77b36.firebaseapp.com",
+    projectId: "neomis-77b36",
+    storageBucket: "neomis-77b36.firebasestorage.app",
+    messagingSenderId: "836047126207",
+    appId: "1:836047126207:web:df890a577383585698100a"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // ================== ELEMENTS ==================
+  const totalIncomeEl = document.getElementById("totalIncome");
+  const totalExpensesEl = document.getElementById("totalExpenses");
+  const currentBalanceEl = document.getElementById("currentBalance");
+  const pendingFeesEl = document.getElementById("pendingFees");
+  const studentFeeTbody = document.querySelector("#studentFeeTable tbody");
+  const searchInput = document.getElementById("searchStudent");
+  const classSelect = document.getElementById("classSelect");
+  const studentSelect = document.getElementById("studentSelect");
+  const totalFeeInput = document.getElementById("totalFee");
+  const paidAmountInput = document.getElementById("paidAmount");
+  const pendingAmountInput = document.getElementById("pendingAmount");
+  const amountPaidInput = document.getElementById("amountPaid");
+  let financeChart;
+
+  // ================== DARK MODE ==================
+  function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+  }
+
+  // ================== EXPORT EXCEL ==================
+  function exportExcel() {
+    const table = document.getElementById("studentFeeTable");
+    const wb = XLSX.utils.table_to_book(table);
+    XLSX.writeFile(wb, "FinanceReport.xlsx");
+  }
+
+  // ================== REALTIME DASHBOARD ==================
+  function listenDashboard() {
+    db.collection("students").onSnapshot(async (studentsSnap) => {
+      db.collection("payments").onSnapshot(async (paymentsSnap) => {
+        db.collection("expenses").onSnapshot(async (expensesSnap) => {
+          let totalIncome = 0, totalExpenses = 0, totalPending = 0;
+          studentFeeTbody.innerHTML = "";
+
+          // Total Income
+          paymentsSnap.forEach(doc => {
+            totalIncome += Number(doc.data().amount || 0);
+          });
+
+          // Total Expenses
+          expensesSnap.forEach(doc => {
+            totalExpenses += Number(doc.data().amount || 0);
+          });
+
+          // Students Table
+          studentsSnap.forEach(doc => {
+            const s = doc.data();
+            const balance = s.totalFee - (s.paidAmount || 0);
+            if(balance > 0) totalPending += balance;
+            const status = balance === 0 ? "Paid" : (balance < s.totalFee ? "Partial" : "Unpaid");
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${s.name}</td>
+              <td>${s.class || ""}</td>
+              <td>${s.totalFee}</td>
+              <td>${s.paidAmount || 0}</td>
+              <td>${balance}</td>
+              <td>${status}</td>
+              <td><button onclick="generateReceipt('${s.name}',${s.paidAmount || 0})">PDF</button></td>
+            `;
+            studentFeeTbody.appendChild(row);
+          });
+
+          totalIncomeEl.innerText = totalIncome.toLocaleString() + " RWF";
+          totalExpensesEl.innerText = totalExpenses.toLocaleString() + " RWF";
+          currentBalanceEl.innerText = (totalIncome - totalExpenses).toLocaleString() + " RWF";
+          pendingFeesEl.innerText = totalPending.toLocaleString() + " RWF";
+
+          updateChart(totalIncome, totalExpenses);
+        });
+      });
+    });
+  }
+
+  // ================== CHART ==================
+  function updateChart(income, expenses) {
+    const ctx = document.getElementById("financeChart").getContext("2d");
+    if(financeChart) financeChart.destroy();
+
+    financeChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["Income", "Expenses"],
+        datasets: [{
+          label: "Amount RWF",
+          data: [income, expenses],
+          backgroundColor: ["green", "red"]
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+  }
+
+  // ================== PAYMENT FORM ==================
+  const classes = ["P1","P2","P3","P4","P5","P6","S1","S2","S3","S4","S5","S6"];
+  classes.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    classSelect.appendChild(opt);
+  });
+
+  // ===============================
+// 1. STUDENT SELECT CHANGE
+// ===============================
+studentSelect.addEventListener("change", async () => {
+  const studentId = studentSelect.value;
+  if (!studentId) return;
+
+  const doc = await db.collection("students").doc(studentId).get();
+  if (!doc.exists) return;
+
+  const data = doc.data();
+
+  const paid = Number(data.paidAmount || 0);
+  const total = Number(data.totalFee || 100000);
+  const balance = total - paid;
+
+  totalFeeInput.value = total;
+  paidAmountInput.value = paid;
+  pendingAmountInput.value = balance;
+
+  const MAX_ALLOWED = 1_000_000;
+
+  if (balance < 0) {
+    amountPaidInput.disabled = false;
+    // maximum = balance cyangwa 1,000,000 aho ari ntoya
+    amountPaidInput.max = Math.max(2,000,000, Math.min(balance, MAX_ALLOWED));
+    amountPaidInput.value = "";
+    amountPaidInput.placeholder = `Max: ${Math.min(balance, MAX_ALLOWED).toLocaleString()} RWF`;
+  } else {
+    amountPaidInput.disabled = false;
+    amountPaidInput.value = "";
+    amountPaidInput.placeholder = "Paid in full";
+    amountPaidInput.max = 10000000;
+  }
+});
+// ===============================
+// 2. PAYMENT FORM SUBMIT
+// ===============================
+document.getElementById("paymentForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const amountStr = amountPaidInput.value;
+  const amount = Number(amountStr);
+
+  if (!amountStr || isNaN(amount) || amount <= 0) {
+    return alert("Andika amafaranga nyayo");
+  }
+
+  const studentId = studentSelect.value;
+  if (!studentId) return alert("Hitamo umunyeshuri");
+
+  const date = document.getElementById("paymentDate").value;
+  if (!date) return alert("Hitamo itariki yo kwishyura");
+
+  const studentRef = db.collection("students").doc(studentId);
+  const studentDoc = await studentRef.get();
+  if (!studentDoc.exists) return alert("Umunyeshuri ntabaho");
+
+  const data = studentDoc.data();
+  const paid = Number(data.paidAmount || 0);
+  const total = Number(data.totalFee || 100000);
+  const balance = total - paid;
+  const MAX_ALLOWED = 1_000_000;
+
+  if (amount > balance) return alert(`Amafaranga ararenze balance: ${balance.toLocaleString()} RWF`);
+  if (amount > MAX_ALLOWED) return alert("Ntushobora kurenza 1,000,000 RWF");
+
+  const newPaid = paid + amount;
+
+  // SAVE PAYMENT
+  await db.collection("payments").add({ studentId, amount, date, createdAt: new Date() });
+
+  // UPDATE STUDENT PAID AMOUNT
+  await studentRef.update({ paidAmount: newPaid });
+
+  // UPDATE INPUT FIELDS
+  paidAmountInput.value = newPaid;
+  pendingAmountInput.value = total - newPaid;
+  amountPaidInput.value = "";
+  document.getElementById("paymentDate").value = "";
+
+  // INSTANT TABLE UPDATE
+  const balanceAfter = total - newPaid;
+  const status = balanceAfter === 0 ? "Paid" : (balanceAfter < total ? "Partial" : "Unpaid");
+
+  let existingRow = Array.from(studentFeeTbody.rows).find(r => r.cells[0].innerText === data.name);
+  if (existingRow) {
+    existingRow.cells[2].innerText = total;
+    existingRow.cells[3].innerText = newPaid;
+    existingRow.cells[4].innerText = balanceAfter;
+    existingRow.cells[5].innerText = status;
+  } else {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${data.name}</td>
+      <td>${data.class || ""}</td>
+      <td>${total}</td>
+      <td>${newPaid}</td>
+      <td>${balanceAfter}</td>
+      <td>${status}</td>
+      <td><button onclick="generateReceipt('${data.name}',${newPaid})">PDF</button></td>
+    `;
+    studentFeeTbody.appendChild(row);
+  }
+
+  alert("Saved successfully!");
+});
+  // ================== EXPENSE FORM ==================
+  document.getElementById("expenseForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const category = document.getElementById("expenseCategory").value;
+    const type = document.getElementById("expenseType").value;
+    const amount = Number(document.getElementById("expenseAmount").value);
+    const desc = document.getElementById("expenseDesc").value;
+    const date = document.getElementById("expenseDate").value;
+
+    if(!category || !type || amount <= 0) return alert("Fill all fields correctly");
+
+    await db.collection("expenses").add({category, type, amount, description: desc, date, createdAt: new Date()});
+    e.target.reset();
+  });
+
+  // ================== SEARCH ==================
+  searchInput.addEventListener("input", () => {
+    const filter = searchInput.value.toLowerCase();
+    Array.from(studentFeeTbody.rows).forEach(row => {
+      row.style.display = row.cells[0].innerText.toLowerCase().includes(filter) ? "" : "none";
+    });
+  });
+
+  // ================== PDF ==================
+  function generateReceipt(name, amount) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const safeName = name.replace(/[^a-z0-9]/gi, '_');
+
+    doc.setFontSize(16);
+    doc.text("SCHOOL PAYMENT RECEIPT", 20, 20);
+    doc.setFontSize(12);
+    doc.text("Student: " + name, 20, 40);
+    doc.text("Amount Paid: " + amount + " RWF", 20, 50);
+    doc.text("Date: " + new Date().toLocaleDateString(), 20, 60);
+    doc.save(`${safeName}_receipt.pdf`);
+  }
+
+  // ================== SIDEBAR NAV ==================
+  function showPage(pageId){
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.getElementById(pageId).classList.remove('hidden');
+  }
+
+  document.querySelectorAll('.sidebar ul li').forEach((item, index) => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.sidebar ul li').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const pages = ["dashboardPage","studentsPage","teachersPage","attendancePage","financePage","reportsPage","settingsPage"];
+      showPage(pages[index]);
+    });
+  });
+
+  // ================== INITIALIZE ==================
+  
+function listenDashboard() {
+
+  const calc = async () => {
+
+    // GET CURRENT DATA
+    const studentsSnap = await db.collection("students").get();
+    const paymentsSnap = await db.collection("payments").get();
+    const expensesSnap = await db.collection("expenses").get();
+
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    let totalPending = 0;
+
+    studentFeeTbody.innerHTML = "";
+
+    // ================= PAYMENTS =================
+    paymentsSnap.forEach(doc => {
+      totalIncome += Number(doc.data().amount || 0);
+    });
+
+    // ================= EXPENSES =================
+    expensesSnap.forEach(doc => {
+      totalExpenses += Number(doc.data().amount || 0);
+    });
+
+    // ================= STUDENTS =================
+    studentsSnap.forEach(doc => {
+      const s = doc.data();
+
+      const total = Number(s.totalFee || 0);
+      const paid = Number(s.paidAmount || 0);
+      const balance = total - paid;
+
+      if (balance > 0) totalPending += balance;
+
+      const status =
+        balance <= 0 ? "Paid" :
+        paid > 0 ? "Partial" : "Unpaid";
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${s.name || ""}</td>
+        <td>${s.class || ""}</td>
+        <td>${total.toLocaleString()}</td>
+        <td>${paid.toLocaleString()}</td>
+        <td>${balance.toLocaleString()}</td>
+        <td>${status}</td>
+        <td><button onclick="generateReceipt('${s.name}',${paid})">PDF</button></td>
+      `;
+      studentFeeTbody.appendChild(row);
+    });
+
+    // ================= UPDATE DASHBOARD =================
+    totalIncomeEl.innerText = totalIncome.toLocaleString() + " RWF";
+    totalExpensesEl.innerText = totalExpenses.toLocaleString() + " RWF";
+    currentBalanceEl.innerText = (totalIncome - totalExpenses).toLocaleString() + " RWF";
+    pendingFeesEl.innerText = totalPending.toLocaleString() + " RWF";
+
+    updateChart(totalIncome, totalExpenses);
+  };
+
+  // ================= REALTIME LISTENERS =================
+  db.collection("students").onSnapshot(calc);
+  db.collection("payments").onSnapshot(calc);
+  db.collection("expenses").onSnapshot(calc);
 }
-};
+// ===============================
+// LOAD STUDENTS BY CLASS
+// ===============================
+classSelect.addEventListener("change", async () => {
+  const selectedClass = classSelect.value;
 
-/* LOAD STUDENTS */
-async function loadStudents(){
-const snap = await getDocs(collection(db,"students"));
+  studentSelect.innerHTML = '<option value="">-- Select Student --</option>';
 
-allStudents = [];
+  if (!selectedClass) return;
 
-studentSelect.innerHTML="";
-payStudent.innerHTML="";
+  try {
+    const snap = await db.collection("students")
+      .where("class", "==", selectedClass)
+      .get();
 
-snap.forEach(d=>{
-const s = d.data();
-allStudents.push({id:d.id,...s});
+    if (snap.empty) {
+      console.log("No students found for class:", selectedClass);
+      return;
+    }
 
-const opt = document.createElement("option");
-opt.value = d.id;
-opt.textContent = s.name;
-studentSelect.appendChild(opt);
+    snap.forEach(doc => {
+      const data = doc.data();
+
+      const opt = document.createElement("option");
+      opt.value = doc.id;
+      opt.textContent = data.name;
+
+      studentSelect.appendChild(opt);
+    });
+
+  } catch (err) {
+    console.error("Error loading students:", err);
+  }
 });
-
-studentsCount.innerText = allStudents.length;
-}
-
-/* FILTER */
-window.filterByClass = function(){
-const cls = classSelect.value;
-
-studentSelect.innerHTML="";
-
-(allStudents.filter(s=>!cls || s.class===cls))
-.forEach(s=>{
-const opt=document.createElement("option");
-opt.value=s.id;
-opt.textContent=s.name;
-studentSelect.appendChild(opt);
-});
-};
-
-/* SHOW PAYMENT */
-window.showStudentPayment = function(){
-const id = studentSelect.value;
-const s = allStudents.find(x=>x.id===id);
-
-if(!s){
-paymentBox.innerHTML="No student";
-return;
-}
-
-const paid = s.paid || 0;
-const balance = s.balance || ((s.totalFees||0)-paid);
-
-paymentBox.innerHTML=`
-<b>${s.name}</b><br>
-Paid: ${paid}<br>
-Balance: ${balance}
-`;
-};
-
-/* LOAD PAY STUDENTS */
-window.loadStudentsForPay = function(){
-const cls = payClass.value;
-payStudent.innerHTML="";
-
-(allStudents.filter(s=>!cls || s.class===cls))
-.forEach(s=>{
-const opt=document.createElement("option");
-opt.value=s.id;
-opt.textContent=s.name;
-payStudent.appendChild(opt);
-});
-};
-
-/* SAVE PAYMENT */
-window.savePayment = async function(){
-
-const id = payStudent.value;
-const amount = Number(amountPaid.value);
-
-if(!id || amount<=0){
-alert("Enter valid data");
-return;
-}
-
-const ref = doc(db,"students",id);
-const snap = await getDoc(ref);
-
-if(!snap.exists()) return alert("Student not found");
-
-const s = snap.data();
-
-const newPaid = (s.paid||0)+amount;
-const total = s.totalFees||100000;
-const newBalance = total - newPaid;
-
-await updateDoc(ref,{
-paid:newPaid,
-balance:newBalance
-});
-
-await addDoc(collection(db,"payments"),{
-studentId:id,
-name:s.name,
-class:s.class,
-amount,
-date:new Date()
-});
-
-alert("Payment saved");
-
-await loadStudents();
-};
-
-/* FINANCE LISTENER */
-function listenFinance(){
-onSnapshot(collection(db,"finance"),snap=>{
-let income=0,expenses=0;
-
-snap.forEach(d=>{
-income+=d.data().income||0;
-expenses+=d.data().expenses||0;
-});
-
-incomeEl.innerText=income;
-balanceEl.innerText=income-expenses;
-});
-}
 
 </script>
-
 </body>
 </html>
