@@ -6,179 +6,57 @@
 <title>Finance Panel</title>
 
 <style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
-
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
 body{
 background:linear-gradient(135deg,#050510,#0a1a2f);
-color:white;
-min-height:100vh;
-overflow-x:hidden;
+color:white;min-height:100vh;
 }
 
-/* 🌟 NEON BACKGROUND */
-body::before{
-content:"";
-position:fixed;
-top:-50%;
-left:-50%;
-width:200%;
-height:200%;
-background:radial-gradient(circle,rgba(0,255,255,0.15),transparent 60%);
-animation:move 8s linear infinite;
-z-index:0;
-}
-
-@keyframes move{
-0%{transform:translate(0,0);}
-50%{transform:translate(100px,80px);}
-100%{transform:translate(0,0);}
-}
-
-/* PARTICLES */
-#particles{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-z-index:0;
-overflow:hidden;
-pointer-events:none;
-}
-
-.particle{
-position:absolute;
-width:4px;
-height:4px;
-background:#00ffff;
-border-radius:50%;
-opacity:0.6;
-animation:floatUp linear infinite;
-}
-
-@keyframes floatUp{
-from{transform:translateY(100vh);opacity:0;}
-to{transform:translateY(-10vh);opacity:1;}
-}
-
-/* LOGIN BOX (FIXED - ONLY ONCE) */
+/* LOGIN */
 #loginBox{
-position:fixed;
-top:50%;
-left:50%;
+position:fixed;top:50%;left:50%;
 transform:translate(-50%,-50%);
-width:330px;
 padding:30px;
-background:rgba(0,0,0,0.85);
+background:#000000cc;
 border-radius:15px;
-display:flex;
-flex-direction:column;
-align-items:center;
-z-index:9999;
-backdrop-filter:blur(10px);
-
-border:2px solid transparent;
-background-clip:padding-box;
-box-shadow:0 0 25px #00ffff;
-animation:borderGlow 3s linear infinite;
-}
-
-@keyframes borderGlow{
-0%{box-shadow:0 0 10px #00ffff;}
-50%{box-shadow:0 0 30px #ff00ff;}
-100%{box-shadow:0 0 10px #00ffff;}
+z-index:999;
 }
 
 /* DASHBOARD */
 .dashboard{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
-padding:25px;
-position:relative;
-z-index:1;
-}
-
-.card{
-background:rgba(255,255,255,.08);
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:15px;
 padding:20px;
-border-radius:15px;
+}
+.card{
+background:rgba(255,255,255,0.08);
+padding:15px;border-radius:10px;
 text-align:center;
-box-shadow:0 0 15px rgba(0,255,255,.2);
-transition:.3s;
 }
 
-.card:hover{
-transform:translateY(-5px) scale(1.03);
-box-shadow:0 0 25px #00ffff;
-}
-
-.card h3{ color:#00ffff; }
-
-/* SECTION */
+/* SECTIONS */
 .section{
 margin:20px;
-background:rgba(255,255,255,.08);
-padding:20px;
-border-radius:15px;
-z-index:1;
-position:relative;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-}
-
-table th, table td{
-padding:10px;
-border:1px solid rgba(255,255,255,.2);
-text-align:center;
-}
-
-table th{
-background:#00ffff;
-color:black;
-}
-
-/* BUTTONS */
-.btn{
-padding:10px 15px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-margin-top:10px;
-}
-
-.print{ background:#25D366; color:white; }
-.report{ background:#ffcc00; color:black; }
-
-#reportBox{
-background:white;
-color:black;
 padding:15px;
+background:rgba(255,255,255,0.08);
 border-radius:10px;
-margin-top:15px;
-min-height:120px;
+}
+
+button{
+padding:10px;
+cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<div id="particles"></div>
-
 <!-- LOGIN -->
 <div id="loginBox">
-<h2>Finance Panel</h2>
-<input id="username" placeholder="Username">
-<input id="password" type="password" placeholder="Password">
+<h2>Login</h2>
+<input id="username" placeholder="Username"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
 <button onclick="login()">Login</button>
 <p id="error"></p>
 </div>
@@ -186,371 +64,208 @@ min-height:120px;
 <!-- APP -->
 <div id="app" style="display:none;">
 
-  <!-- 🔥 CHECK STUDENT PAYMENT -->
-  <div class="section">
-    <h2>Check Student Payment</h2>
+<div class="section">
+<h2>Check Payment</h2>
 
-    <select id="classSelect" onchange="filterByClass()">
-      <option value="">Select Class</option>
-      <option value="S1">S1</option>
-      <option value="S2">S2</option>
-      <option value="S3">S3</option>
-      <option value="S4">S4</option>
-      <option value="S5">S5</option>
-      <option value="S6">S6</option>
-    </select>
+<select id="classSelect" onchange="filterByClass()">
+<option value="">Class</option>
+<option>S1</option><option>S2</option><option>S3</option>
+<option>S4</option><option>S5</option><option>S6</option>
+</select>
 
-    <br><br>
+<br><br>
 
-    <select id="studentSelect" onchange="showStudentPayment()">
-      <option value="">Select Student</option>
-    </select>
+<select id="studentSelect" onchange="showStudentPayment()"></select>
 
-    <div id="paymentBox"
-      style="margin-top:15px;
-      background:white;
-      color:black;
-      padding:10px;
-      border-radius:10px;">
-      No student selected
-    </div>
-  </div>
+<div id="paymentBox">No student selected</div>
+</div>
 
-  <!-- 🔥 ADD PAYMENT -->
-  <div class="section">
-    <h2>Add Payment</h2>
+<div class="section">
+<h2>Add Payment</h2>
 
-    <select id="payClass" onchange="loadStudentsForPay()">
-      <option value="">Select Class</option>
-      <option value="S1">S1</option>
-      <option value="S2">S2</option>
-      <option value="S3">S3</option>
-      <option value="S4">S4</option>
-      <option value="S5">S5</option>
-      <option value="S6">S6</option>
-    </select>
+<select id="payClass" onchange="loadStudentsForPay()">
+<option value="">Class</option>
+<option>S1</option><option>S2</option><option>S3</option>
+<option>S4</option><option>S5</option><option>S6</option>
+</select>
 
-    <br><br>
+<br><br>
 
-    <select id="payStudent">
-      <option value="">Select Student</option>
-    </select>
+<select id="payStudent"></select>
 
-    <br><br>
+<br><br>
 
-    <input type="number" id="amountPaid" placeholder="Enter amount paid">
+<input id="amountPaid" type="number" placeholder="Amount">
 
-    <br><br>
+<br><br>
 
-    <button class="btn report" onclick="savePayment()">
-      Save Payment
-    </button>
-  </div>
+<button onclick="savePayment()">Save</button>
+</div>
 
 </div>
 
-<button onclick="logout()" style="
-position:fixed;top:15px;right:15px;
-padding:10px 15px;border:none;
-border-radius:10px;background:red;
-color:white;font-weight:bold;
-cursor:pointer;box-shadow:0 0 10px red;">
-Logout
-</button>
-
+<!-- DASHBOARD -->
 <div class="dashboard">
-<div class="card"><h3>Students</h3><h2>650</h2></div>
-<div class="card"><h3>Fees</h3><h2>50,000,000 RWF</h2></div>
-<div class="card"><h3>Balance</h3><h2>12,000,000 RWF</h2></div>
-<div class="card"><h3>Receipts</h3><h2>540</h2></div>
-<div class="card"><h3>Expenses</h3><h2>15,000,000 RWF</h2></div>
-<div class="card"><h3>Account</h3><h2>35,000,000 RWF</h2></div>
+<div class="card"><h3>Students</h3><h2 id="studentsCount">0</h2></div>
+<div class="card"><h3>Income</h3><h2 id="income">0</h2></div>
+<div class="card"><h3>Balance</h3><h2 id="balance">0</h2></div>
 </div>
 
-<div class="section">
-<h2>Student Fees</h2>
-<table>
-<tr><th>Student</th><th>Class</th><th>Paid</th><th>Balance</th></tr>
-<tr><td>John</td><td>S6</td><td>150,000</td><td>50,000</td></tr>
-<tr><td>Jane</td><td>S5</td><td>200,000</td><td>0</td></tr>
-</table>
-</div>
-
-<div class="section">
-<h2>Receipts</h2>
-<p>Receipt RC-001</p>
-<button class="btn print" onclick="downloadReceipt()">Download</button>
-</div>
-
-<div class="section">
-<h2>Reports</h2>
-<button class="btn report" onclick="showReport('daily')">Daily</button>
-<button class="btn report" onclick="showReport('weekly')">Weekly</button>
-<button class="btn report" onclick="showReport('monthly')">Monthly</button>
-<button class="btn report" onclick="showReport('term')">Term</button>
-<button class="btn report" onclick="showReport('annual')">Annual</button>
-
-<div id="reportBox">Click report...</div>
-</div>
-
-</div>
-
-
-  
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  doc,
-  getDoc,
-  setDoc,
-  query,
-  where
+getFirestore,
+collection,
+getDocs,
+addDoc,
+updateDoc,
+doc,
+getDoc,
+onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-/* ================= FIREBASE ================= */
+/* FIREBASE */
 const firebaseConfig = {
-  apiKey: "AIzaSy....",
-  authDomain: "neomis-77b36.firebaseapp.com",
-  projectId: "neomis-77b36",
-  storageBucket: "neomis-77b36.firebasestorage.app",
-  messagingSenderId: "836047126207",
-  appId: "1:836047126207:web:df890a577383585698100a"
+apiKey:"AIzaSy....",
+authDomain:"neomis-77b36.firebaseapp.com",
+projectId:"neomis-77b36"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ================= GLOBAL ================= */
 window.allStudents = [];
 
-/* ================= LOGIN ================= */
-window.login = function () {
-  let u = document.getElementById("username").value;
-  let p = document.getElementById("password").value;
+/* LOGIN */
+window.login = function(){
+let u=document.getElementById("username").value;
+let p=document.getElementById("password").value;
 
-  if (u === "admin" && p === "1234") {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("app").style.display = "block";
-
-    loadStudents();
-    listenFinance();
-  } else {
-    document.getElementById("error").innerText = "Wrong login!";
-  }
+if(u==="admin" && p==="1234"){
+document.getElementById("loginBox").style.display="none";
+document.getElementById("app").style.display="block";
+loadStudents();
+listenFinance();
+}else{
+document.getElementById("error").innerText="Wrong login";
+}
 };
 
-window.logout = function () {
-  document.getElementById("app").style.display = "none";
-  document.getElementById("loginBox").style.display = "flex";
-};
+/* LOAD STUDENTS */
+async function loadStudents(){
+const snap = await getDocs(collection(db,"students"));
 
-/* ================= LOAD STUDENTS ================= */
-async function loadStudents() {
-  const snap = await getDocs(collection(db, "students"));
+window.allStudents = [];
 
-  window.allStudents = [];
+let select = document.getElementById("studentSelect");
+select.innerHTML="";
 
-  let table = document.querySelector("table");
+snap.forEach(d=>{
+let s=d.data();
+window.allStudents.push({id:d.id,...s});
 
-  table.innerHTML = `
-    <tr>
-      <th>Student</th>
-      <th>Class</th>
-      <th>Paid</th>
-      <th>Balance</th>
-    </tr>
-  `;
+let opt=document.createElement("option");
+opt.value=d.id;
+opt.textContent=s.name;
+select.appendChild(opt);
+});
 
-  snap.forEach(d => {
-    let s = d.data();
-
-    window.allStudents.push({
-      id: d.id,
-      ...s
-    });
-
-    table.innerHTML += `
-      <tr style="background:${(s.balance || 0) > 0 ? '#ffdddd' : ''}">
-        <td>${s.name || ""}</td>
-        <td>${s.class || ""}</td>
-        <td>${s.paid || 0}</td>
-        <td>${s.balance || 0}</td>
-      </tr>
-    `;
-  });
+document.getElementById("studentsCount").innerText = window.allStudents.length;
 }
 
-/* ================= CLASS FILTER ================= */
-window.filterByClass = function () {
-  let cls = document.getElementById("classSelect").value;
-  let select = document.getElementById("studentSelect");
+/* FILTER */
+window.filterByClass=function(){
+let cls=document.getElementById("classSelect").value;
 
-  select.innerHTML = `<option value="">Select Student</option>`;
+let select=document.getElementById("studentSelect");
+select.innerHTML="";
 
-  window.allStudents
-    .filter(s => s.class === cls)
-    .forEach(s => {
-      let opt = document.createElement("option");
-      opt.value = s.id;
-      opt.textContent = s.name;
-      select.appendChild(opt);
-    });
+window.allStudents.filter(s=>s.class===cls)
+.forEach(s=>{
+let opt=document.createElement("option");
+opt.value=s.id;
+opt.textContent=s.name;
+select.appendChild(opt);
+});
 };
 
-/* ================= SHOW PAYMENT ================= */
-window.showStudentPayment = function () {
-  let id = document.getElementById("studentSelect").value;
+/* SHOW PAYMENT */
+window.showStudentPayment=function(){
+let id=document.getElementById("studentSelect").value;
+let s=window.allStudents.find(x=>x.id===id);
 
-  let s = window.allStudents.find(x => x.id === id);
-
-  let box = document.getElementById("paymentBox");
-
-  if (!s) {
-    box.innerHTML = "No student selected";
-    return;
-  }
-
-  box.innerHTML = `
-    <b>Name:</b> ${s.name}<br>
-    <b>Class:</b> ${s.class}<br>
-    <b>Paid:</b> ${s.paid || 0}<br>
-    <b>Balance:</b> ${s.balance || 0}
-  `;
+document.getElementById("paymentBox").innerHTML =
+s ? `${s.name} | Paid: ${s.paid||0} | Balance: ${s.balance||0}`
+: "No student selected";
 };
 
-/* ================= RECEIPT NUMBER ================= */
-async function getReceiptNumber() {
-  const ref = doc(db, "system", "receiptCounter");
-  const snap = await getDoc(ref);
+/* LOAD PAY STUDENTS */
+window.loadStudentsForPay=function(){
+let cls=document.getElementById("payClass").value;
+let select=document.getElementById("payStudent");
 
-  if (!snap.exists()) {
-    await setDoc(ref, { value: 1 });
-    return "RC-001";
-  }
+select.innerHTML="";
 
-  let next = snap.data().value + 1;
-
-  await updateDoc(ref, { value: next });
-
-  return "RC-" + String(next).padStart(3, "0");
-}
-
-/* ================= SAVE PAYMENT (FINAL FIX) ================= */
-window.savePayment = async function () {
-
-  let studentId = document.getElementById("payStudent").value;
-  let amount = Number(document.getElementById("amountPaid").value);
-
-  if (!studentId || !amount) {
-    alert("Fill all fields");
-    return;
-  }
-
-  let ref = doc(db, "students", studentId);
-  let snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    alert("Student not found");
-    return;
-  }
-
-  let s = snap.data();
-
-  let receiptNo = await getReceiptNumber();
-
-  let newPaid = (s.paid || 0) + amount;
-  let newBalance = (s.totalFees || 0) - newPaid;
-
-  /* SAVE PAYMENT HISTORY */
-  await addDoc(collection(db, "payments"), {
-    studentId,
-    name: s.name,
-    class: s.class,
-    amount,
-    receiptNo,
-    date: new Date()
-  });
-
-  /* UPDATE STUDENT */
-  await updateDoc(ref, {
-    paid: newPaid,
-    balance: newBalance
-  });
-
-  alert("Saved Receipt: " + receiptNo);
-
-  loadStudents();
+window.allStudents.filter(s=>s.class===cls)
+.forEach(s=>{
+let opt=document.createElement("option");
+opt.value=s.id;
+opt.textContent=s.name;
+select.appendChild(opt);
+});
 };
 
-/* ================= RECEIPT PRINT ================= */
-window.printReceipt = async function (receiptNo) {
+/* SAVE PAYMENT */
+window.savePayment = async function(){
 
-  const q = query(collection(db, "payments"), where("receiptNo", "==", receiptNo));
-  const snap = await getDocs(q);
+let id=document.getElementById("payStudent").value;
+let amount=Number(document.getElementById("amountPaid").value);
 
-  let data = null;
+if(!id||!amount) return alert("Fill all");
 
-  snap.forEach(d => data = d.data());
+let ref=doc(db,"students",id);
+let snap=await getDoc(ref);
 
-  if (!data) {
-    alert("Receipt not found");
-    return;
-  }
+if(!snap.exists()) return alert("Not found");
 
-  let win = window.open("", "_blank");
+let s=snap.data();
 
-  win.document.write(`
-    <html>
-    <head>
-      <title>Receipt</title>
-      <style>
-        body{font-family:Arial;padding:20px;}
-        .box{border:1px solid #000;padding:20px;}
-      </style>
-    </head>
-    <body>
-      <div class="box">
-        <h2>RECEIPT</h2>
-        <p>Receipt: ${data.receiptNo}</p>
-        <p>Name: ${data.name}</p>
-        <p>Class: ${data.class}</p>
-        <p>Amount: ${data.amount}</p>
-        <p>Date: ${new Date(data.date.seconds * 1000).toLocaleString()}</p>
-      </div>
+let newPaid=(s.paid||0)+amount;
+let newBalance=(s.totalFees||100000)-(newPaid);
 
-      <script>window.print();</script>
-    </body>
-    </html>
-  `);
+await updateDoc(ref,{
+paid:newPaid,
+balance:newBalance
+});
 
-  win.document.close();
+await addDoc(collection(db,"payments"),{
+studentId:id,
+name:s.name,
+class:s.class,
+amount,
+date:new Date()
+});
+
+alert("Payment saved");
+loadStudents();
 };
 
-/* ================= FINANCE LIVE ================= */
-function listenFinance() {
-  onSnapshot(collection(db, "finance"), (snap) => {
-    let income = 0;
-    let expenses = 0;
+/* FINANCE */
+function listenFinance(){
+onSnapshot(collection(db,"finance"),snap=>{
+let income=0,expenses=0;
 
-    snap.forEach(d => {
-      income += d.data().income || 0;
-      expenses += d.data().expenses || 0;
-    });
+snap.forEach(d=>{
+income+=d.data().income||0;
+expenses+=d.data().expenses||0;
+});
 
-    let balance = income - expenses;
-
-    document.querySelector(".card:nth-child(2) h2").innerText = income.toLocaleString() + " RWF";
-    document.querySelector(".card:nth-child(3) h2").innerText = balance.toLocaleString() + " RWF";
-    document.querySelector(".card:nth-child(5) h2").innerText = expenses.toLocaleString() + " RWF";
-    document.querySelector(".card:nth-child(6) h2").innerText = balance.toLocaleString() + " RWF";
-  });
+document.getElementById("income").innerText=income;
+document.getElementById("balance").innerText=income-expenses;
+});
 }
 
 </script>
+
 </body>
 </html>
