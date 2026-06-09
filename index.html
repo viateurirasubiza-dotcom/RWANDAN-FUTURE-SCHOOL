@@ -2231,53 +2231,38 @@ window.loadClassStudents = async function () {
 
   let cls = document.getElementById("printClassSelect").value;
 
-  if (!cls) {
-    alert("Select class first");
-    return;
-  }
+  console.log("Selected Class:", cls);
 
-  try {
+  const snap = await getDocs(collection(db, "classStudents"));
 
-    const snap = await getDocs(
-      collection(db, "classStudents")
-    );
+  let html = "";
 
-    let html = "";
+  snap.forEach((docSnap) => {
 
-    snap.forEach((docSnap) => {
+    const s = docSnap.data();
 
-      const s = docSnap.data();
+    console.log("Student:", s);
 
-      if (s.class === cls) {
+    if (String(s.class).trim() === String(cls).trim()) {
 
-        html += `
-          <tr>
-            <td>${s.name}</td>
-            <td>${s.class}</td>
-            <td>${s.sdms || "-"}</td>
-            <td>
-              <button onclick="deleteClassStudent('${docSnap.id}')">
-                Delete
-              </button>
-            </td>
-          </tr>
-        `;
+      html += `
+      <tr>
+        <td>${s.name}</td>
+        <td>${s.class}</td>
+        <td>${s.sdms || "-"}</td>
+        <td>
+          <button onclick="deleteClassStudent('${docSnap.id}')">
+            Delete
+          </button>
+        </td>
+      </tr>
+      `;
+    }
+  });
 
-      }
-
-    });
-
-    document.getElementById("classList").innerHTML = html;
-
-  } catch (err) {
-
-    console.error(err);
-    alert("Failed to load students");
-
-  }
-
+  document.getElementById("classList").innerHTML =
+    html || "<tr><td colspan='4'>No Students Found</td></tr>";
 };
-  
   window.notify = function (message) {
 
   const box = document.createElement("div");
