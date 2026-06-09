@@ -185,6 +185,36 @@ min-height:120px;
 
 <!-- APP -->
 <div id="app" style="display:none;">
+  <!-- APP -->
+<div id="app" style="display:none;">
+
+  <!-- 🔽 SHYIRA HANO -->
+  <div class="section">
+    <h2>Check Student Payment</h2>
+
+    <select id="classSelect" onchange="filterByClass()">
+      <option value="">Select Class</option>
+      <option value="S1">S1</option>
+      <option value="S2">S2</option>
+      <option value="S3">S3</option>
+      <option value="S4">S4</option>
+      <option value="S5">S5</option>
+      <option value="S6">S6</option>
+    </select>
+
+    <br><br>
+
+    <select id="studentSelect" onchange="showStudentPayment()">
+      <option value="">Select Student</option>
+    </select>
+
+    <div id="paymentBox"
+      style="margin-top:15px;background:white;color:black;padding:10px;border-radius:10px;">
+      No student selected
+    </div>
+  </div>
+
+</div>
 
 <button onclick="logout()" style="
 position:fixed;top:15px;right:15px;
@@ -242,7 +272,7 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-/* ================= FIREBASE CONFIG ================= */
+/* ================= FIREBASE ================= */
 const firebaseConfig = {
   apiKey: "AIzaSy....",
   authDomain: "neomis-77b36.firebaseapp.com",
@@ -254,6 +284,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+/* ================= GLOBAL DATA ================= */
+let allStudents = [];
 
 /* ================= LOGIN ================= */
 window.login = function () {
@@ -276,8 +309,12 @@ window.logout = function () {
   document.getElementById("loginBox").style.display = "flex";
 };
 
-/* ================= STUDENTS FROM FIREBASE ================= */
+/* ================= LOAD STUDENTS ================= */
 async function loadStudents() {
+  const snap = await getDocs(collection(db, "students"));
+
+  allStudents = [];
+
   let table = document.querySelector("table");
 
   table.innerHTML = `
@@ -289,15 +326,14 @@ async function loadStudents() {
     </tr>
   `;
 
-  const snap = await getDocs(collection(db, "students"));
-
   snap.forEach(doc => {
     let s = doc.data();
+    allStudents.push(s);
 
     table.innerHTML += `
       <tr>
-        <td>${s.name || ""}</td>
-        <td>${s.class || ""}</td>
+        <td>${s.name}</td>
+        <td>${s.class}</td>
         <td>${s.paid || 0}</td>
         <td>${s.balance || 0}</td>
       </tr>
@@ -305,7 +341,47 @@ async function loadStudents() {
   });
 }
 
-/* ================= FINANCE (SAVINCE DATA REAL TIME) ================= */
+/* ================= SELECT CLASS ================= */
+window.filterByClass = function () {
+  let cls = document.getElementById("classSelect").value;
+
+  let studentSelect = document.getElementById("studentSelect");
+  studentSelect.innerHTML = `<option value="">Select Student</option>`;
+
+  let filtered = allStudents.filter(s => s.class === cls);
+
+  filtered.forEach(s => {
+    let opt = document.createElement("option");
+    opt.value = s.sdms || s.name;
+    opt.textContent = s.name;
+    studentSelect.appendChild(opt);
+  });
+};
+
+/* ================= SHOW PAYMENT ================= */
+window.showStudentPayment = function () {
+  let id = document.getElementById("studentSelect").value;
+
+  let student = allStudents.find(s =>
+    (s.sdms === id) || (s.name === id)
+  );
+
+  let box = document.getElementById("paymentBox");
+
+  if (!student) {
+    box.innerHTML = "No student selected";
+    return;
+  }
+
+  box.innerHTML = `
+    <b>Name:</b> ${student.name}<br>
+    <b>Class:</b> ${student.class}<br><br>
+    <b>Paid:</b> ${student.paid || 0} RWF<br>
+    <b>Balance:</b> ${student.balance || 0} RWF
+  `;
+};
+
+/* ================= FINANCE LIVE ================= */
 function listenFinance() {
   onSnapshot(collection(db, "finance"), (snap) => {
     let income = 0;
@@ -333,7 +409,7 @@ function listenFinance() {
   });
 }
 
-/* ================= ADD FINANCE (SAVINCE USE) ================= */
+/* ================= ADD FINANCE ================= */
 window.addFinance = async function () {
   await addDoc(collection(db, "finance"), {
     income: 500000,
@@ -341,7 +417,7 @@ window.addFinance = async function () {
     date: new Date()
   });
 
-  alert("Finance saved!");
+  alert("Saved!");
 };
 
 /* ================= PARTICLES ================= */
@@ -367,7 +443,6 @@ window.downloadReceipt = function () {
   a.download = "receipt.txt";
   a.click();
 };
-
 </script>
 
 </body>
