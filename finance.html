@@ -532,30 +532,6 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
 
   // ================== INITIALIZE ==================
   
-function listenDashboard() {
-
-  const calc = async () => {
-
-    // GET CURRENT DATA
-    const studentsSnap = await db.collection("students").get();
-    const paymentsSnap = await db.collection("payments").get();
-    const expensesSnap = await db.collection("expenses").get();
-
-    let totalIncome = 0;
-    let totalExpenses = 0;
-    let totalPending = 0;
-
-    studentFeeTbody.innerHTML = "";
-
-    // ================= PAYMENTS =================
-    paymentsSnap.forEach(doc => {
-      totalIncome += Number(doc.data().amount || 0);
-    });
-
-    // ================= EXPENSES =================
-    expensesSnap.forEach(doc => {
-      totalExpenses += Number(doc.data().amount || 0);
-    });
 
     // ================= STUDENTS =================
     function listenDashboard() {
@@ -700,18 +676,7 @@ classSelect.addEventListener("change", async () => {
     console.error("Error loading students:", err);
   }
 });
-const feeStatusRef = db.collection("feeStatus").doc(studentId);
 
-await feeStatusRef.set({
-  studentId,
-  studentName: data.name,
-  class: data.class || "",
-  totalFee: total,
-  paidAmount: newPaid,
-  balance: balanceAfter,
-  status,
-  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-});
 </script>
 </body>
 </html>
