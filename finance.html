@@ -532,15 +532,14 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
 
   // ================== INITIALIZE ==================
   
-
-    // ================= STUDENTS =================
-    function listenDashboard() {
+function listenDashboard() {
 
   const calc = async () => {
 
+    // GET CURRENT DATA
+    const studentsSnap = await db.collection("students").get();
     const paymentsSnap = await db.collection("payments").get();
     const expensesSnap = await db.collection("expenses").get();
-    const feeStatusSnap = await db.collection("feeStatus").get();
 
     let totalIncome = 0;
     let totalExpenses = 0;
@@ -558,90 +557,47 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
       totalExpenses += Number(doc.data().amount || 0);
     });
 
-    // ================= FEE STATUS =================
-    feeStatusSnap.forEach(doc => {
-
+    // ================= STUDENTS =================
+    studentsSnap.forEach(doc => {
       const s = doc.data();
 
       const total = Number(s.totalFee || 0);
       const paid = Number(s.paidAmount || 0);
-      const balance = Number(s.balance || 0);
+      const balance = total - paid;
 
-      if (balance > 0) {
-        totalPending += balance;
-      }
+      if (balance > 0) totalPending += balance;
+
+      const status =
+        balance <= 0 ? "Paid" :
+        paid > 0 ? "Partial" : "Unpaid";
 
       const row = document.createElement("tr");
-
       row.innerHTML = `
-        <td>${s.studentName || ""}</td>
+        <td>${s.name || ""}</td>
         <td>${s.class || ""}</td>
         <td>${total.toLocaleString()}</td>
         <td>${paid.toLocaleString()}</td>
         <td>${balance.toLocaleString()}</td>
-        <td>${s.status || ""}</td>
-
-        <td>
-          <button onclick="generateReceipt('${s.studentName}',${paid})">
-            PDF
-          </button>
-        </td>
+        <td>${status}</td>
+        <td><button onclick="generateReceipt('${s.name}',${paid})">PDF</button></td>
       `;
-
       studentFeeTbody.appendChild(row);
-
     });
 
-    // ================= DASHBOARD =================
-    totalIncomeEl.innerText =
-      totalIncome.toLocaleString() + " RWF";
-
-    totalExpensesEl.innerText =
-      totalExpenses.toLocaleString() + " RWF";
-
-    currentBalanceEl.innerText =
-      (totalIncome - totalExpenses).toLocaleString() + " RWF";
-
-    pendingFeesEl.innerText =
-      totalPending.toLocaleString() + " RWF";
+    // ================= UPDATE DASHBOARD =================
+    totalIncomeEl.innerText = totalIncome.toLocaleString() + " RWF";
+    totalExpensesEl.innerText = totalExpenses.toLocaleString() + " RWF";
+    currentBalanceEl.innerText = (totalIncome - totalExpenses).toLocaleString() + " RWF";
+    pendingFeesEl.innerText = totalPending.toLocaleString() + " RWF";
 
     updateChart(totalIncome, totalExpenses);
-
   };
 
-  // ================= REALTIME =================
+  // ================= REALTIME LISTENERS =================
+  db.collection("students").onSnapshot(calc);
   db.collection("payments").onSnapshot(calc);
-
   db.collection("expenses").onSnapshot(calc);
-
-  db.collection("feeStatus").onSnapshot(calc);
-
 }
-    const balanceAfter = total - newPaid;
-
-const status =
-  balanceAfter <= 0
-  ? "Paid"
-  : newPaid > 0
-  ? "Partial"
-  : "Unpaid";
-
-await db.collection("feeStatus")
-.doc(studentId)
-.set({
-
-  studentId: studentId,
-  studentName: data.name,
-  class: data.class || "",
-
-  totalFee: total,
-  paidAmount: newPaid,
-  balance: balanceAfter,
-  status: status,
-
-  updatedAt: new Date()
-
-});
 // ===============================
 // LOAD STUDENTS BY CLASS
 // ===============================
@@ -679,4 +635,4 @@ classSelect.addEventListener("change", async () => {
 
 </script>
 </body>
-</html>
+</html> 
