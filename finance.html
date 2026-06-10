@@ -558,46 +558,114 @@ function listenDashboard() {
     });
 
     // ================= STUDENTS =================
-    studentsSnap.forEach(doc => {
+    function listenDashboard() {
+
+  const calc = async () => {
+
+    const paymentsSnap = await db.collection("payments").get();
+    const expensesSnap = await db.collection("expenses").get();
+    const feeStatusSnap = await db.collection("feeStatus").get();
+
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    let totalPending = 0;
+
+    studentFeeTbody.innerHTML = "";
+
+    // ================= PAYMENTS =================
+    paymentsSnap.forEach(doc => {
+      totalIncome += Number(doc.data().amount || 0);
+    });
+
+    // ================= EXPENSES =================
+    expensesSnap.forEach(doc => {
+      totalExpenses += Number(doc.data().amount || 0);
+    });
+
+    // ================= FEE STATUS =================
+    feeStatusSnap.forEach(doc => {
+
       const s = doc.data();
 
       const total = Number(s.totalFee || 0);
       const paid = Number(s.paidAmount || 0);
-      const balance = total - paid;
+      const balance = Number(s.balance || 0);
 
-      if (balance > 0) totalPending += balance;
-
-      const status =
-        balance <= 0 ? "Paid" :
-        paid > 0 ? "Partial" : "Unpaid";
+      if (balance > 0) {
+        totalPending += balance;
+      }
 
       const row = document.createElement("tr");
+
       row.innerHTML = `
-        <td>${s.name || ""}</td>
+        <td>${s.studentName || ""}</td>
         <td>${s.class || ""}</td>
         <td>${total.toLocaleString()}</td>
         <td>${paid.toLocaleString()}</td>
         <td>${balance.toLocaleString()}</td>
-        <td>${status}</td>
-        <td><button onclick="generateReceipt('${s.name}',${paid})">PDF</button></td>
+        <td>${s.status || ""}</td>
+
+        <td>
+          <button onclick="generateReceipt('${s.studentName}',${paid})">
+            PDF
+          </button>
+        </td>
       `;
+
       studentFeeTbody.appendChild(row);
+
     });
 
-    // ================= UPDATE DASHBOARD =================
-    totalIncomeEl.innerText = totalIncome.toLocaleString() + " RWF";
-    totalExpensesEl.innerText = totalExpenses.toLocaleString() + " RWF";
-    currentBalanceEl.innerText = (totalIncome - totalExpenses).toLocaleString() + " RWF";
-    pendingFeesEl.innerText = totalPending.toLocaleString() + " RWF";
+    // ================= DASHBOARD =================
+    totalIncomeEl.innerText =
+      totalIncome.toLocaleString() + " RWF";
+
+    totalExpensesEl.innerText =
+      totalExpenses.toLocaleString() + " RWF";
+
+    currentBalanceEl.innerText =
+      (totalIncome - totalExpenses).toLocaleString() + " RWF";
+
+    pendingFeesEl.innerText =
+      totalPending.toLocaleString() + " RWF";
 
     updateChart(totalIncome, totalExpenses);
+
   };
 
-  // ================= REALTIME LISTENERS =================
-  db.collection("students").onSnapshot(calc);
+  // ================= REALTIME =================
   db.collection("payments").onSnapshot(calc);
+
   db.collection("expenses").onSnapshot(calc);
+
+  db.collection("feeStatus").onSnapshot(calc);
+
 }
+    const balanceAfter = total - newPaid;
+
+const status =
+  balanceAfter <= 0
+  ? "Paid"
+  : newPaid > 0
+  ? "Partial"
+  : "Unpaid";
+
+await db.collection("feeStatus")
+.doc(studentId)
+.set({
+
+  studentId: studentId,
+  studentName: data.name,
+  class: data.class || "",
+
+  totalFee: total,
+  paidAmount: newPaid,
+  balance: balanceAfter,
+  status: status,
+
+  updatedAt: new Date()
+
+});
 // ===============================
 // LOAD STUDENTS BY CLASS
 // ===============================
@@ -632,7 +700,18 @@ classSelect.addEventListener("change", async () => {
     console.error("Error loading students:", err);
   }
 });
+const feeStatusRef = db.collection("feeStatus").doc(studentId);
 
+await feeStatusRef.set({
+  studentId,
+  studentName: data.name,
+  class: data.class || "",
+  totalFee: total,
+  paidAmount: newPaid,
+  balance: balanceAfter,
+  status,
+  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+});
 </script>
 </body>
 </html>
