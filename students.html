@@ -8,7 +8,8 @@
     import {
       getFirestore,
       collection,
-      getDocs
+      getDocs,
+  addDoc
     } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -66,6 +67,9 @@
             <button onclick="viewProfile('${s.name}','${s.class}')">
               View Profile
             </button>
+<button onclick="payFees('${s.name}','${s.class}')">
+  💳 Pay Fees
+</button>
 
           </div>
         `;
@@ -117,7 +121,28 @@
         card.style.display = name.includes(input) ? "block" : "none";
       });
     };
+window.payFees = async function(name, cls){
 
+  const amount = prompt("Enter amount (RWF)");
+
+  if(!amount || isNaN(amount)) return;
+
+  try{
+
+    await addDoc(collection(db,"financePayments"),{
+      student:name,
+      class:cls,
+      amount:Number(amount),
+      status:"Paid",
+      createdAt:serverTimestamp()
+    });
+
+    alert("Payment saved successfully");
+
+  }catch(err){
+    alert(err.message);
+  }
+};
     // INIT
     window.addEventListener("DOMContentLoaded", loadStudents);
 
@@ -192,7 +217,10 @@
       cursor:pointer;
       font-weight:bold;
     }
-
+.pay-btn{
+  background:#16a34a;
+  color:white;
+}
     .history{
       display:flex;
       justify-content:space-between;
