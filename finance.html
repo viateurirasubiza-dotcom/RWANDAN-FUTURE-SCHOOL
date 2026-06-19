@@ -230,13 +230,50 @@ th {
 
     <div class="search-box">
         <h3>Add New Student</h3>
-        <select id="newName">
-            <option value="">Select Student Name</option>
-            <option>Jean</option>
-            <option>Aline</option>
-            <option>Eric</option>
-            <option>Bella</option>
-        </select>
+      <select id="newName">
+    <option value="">Select Student Name</option>
+
+    <option>Jean Claude</option>
+    <option>Aline Uwase</option>
+    <option>Eric Hakizimana</option>
+    <option>Bella Mukamana</option>
+    <option>Emmanuel Niyonsenga</option>
+    <option>Diane Mukeshimana</option>
+    <option>Patrick Ndayisaba</option>
+    <option>Claudine Uwera</option>
+    <option>Samuel Habimana</option>
+    <option>Yvette Umutoni</option>
+    <option>Kevin Mugisha</option>
+    <option>Alice Nyirahabimana</option>
+    <option>Christian Nkurunziza</option>
+    <option>Olive Mukantwari</option>
+    <option>David Nshimiyimana</option>
+    <option>Joyce Uwimana</option>
+    <option>Moses Ndayambaje</option>
+    <option>Ange Ingabire</option>
+    <option>Didier Nsengimana</option>
+    <option>Grace Umutesi</option>
+    <option>Gilbert Habumuremyi</option>
+    <option>Sandrine Uwamahoro</option>
+    <option>Prince Murenzi</option>
+    <option>Ariella Ishimwe</option>
+    <option>Fabrice Ntirenganya</option>
+    <option>Divine Iradukunda</option>
+    <option>Cedric Tuyisenge</option>
+    <option>Chantal Mukarugwiza</option>
+    <option>Eric Niyomugabo</option>
+    <option>Vestine Mukamana</option>
+    <option>Pacifique Nshimiyimana</option>
+    <option>Josiane Uwase</option>
+    <option>Theogene Habinshuti</option>
+    <option>Gloria Uwera</option>
+    <option>Yves Mutabazi</option>
+    <option>Aimee Ingabire</option>
+    <option>Jean Paul Niyonzima</option>
+    <option>Clarisse Mukandayisenga</option>
+    <option>Olivier Mugabo</option>
+    <option>Sandra Mukantabana</option>
+</select>
         <select id="newClass">
             <option value="">Select Class</option>
             <option>P1</option><option>P2</option><option>P3</option>
@@ -244,6 +281,11 @@ th {
             <option>S1</option><option>S2</option><option>S3</option>
             <option>S4</option><option>S5</option><option>S6</option>
         </select>
+<select id="month">
+    <option value="Month 1">Month 1</option>
+    <option value="Month 2">Month 2</option>
+    <option value="Month 3">Month 3</option>
+</select>
         <input type="number" id="newFee" placeholder="Fee">
         <input type="number" id="newPaid" placeholder="Paid">
         <button onclick="addStudent()">Add Student</button>
@@ -272,10 +314,57 @@ th {
         <h2>Term Report</h2>
         <p id="reportData"></p>
     </div>
+<div class="report">
+<h2>Month Reports</h2>
+
+<h3>Month 1</h3>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Name</th>
+<th>Class</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody id="month1Table"></tbody>
+</table>
+
+<h3>Month 2</h3>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Name</th>
+<th>Class</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody id="month2Table"></tbody>
+</table>
+
+<h3>Month 3</h3>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Name</th>
+<th>Class</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody id="month3Table"></tbody>
+</table>
+
+<h2>Annual Report (3 Months)</h2>
+<div id="annualReport"></div>
+
+</div>
 
 </div>
 
 <script>
+let payments = [];
 // Sample Data
 let students = [
     {name:"Jean", class:"S3", fee:50000, paid:50000},
@@ -325,9 +414,9 @@ function renderTable() {
             </tr>`;
         }
     });
-
-    updateDashboard();
-    generateReport();
+updateDashboard();
+generateReport();
+generateReports();
 }
 
 // DASHBOARD UPDATE
@@ -370,45 +459,111 @@ function editStudent(name){
 }
 
 function downloadReceipt(name){
+
     let s = students.find(x => x.name === name);
+
     let balance = s.fee - s.paid;
+    let today = new Date().toLocaleDateString();
+
+    let receiptNo = "RF-" + Date.now();
+
     let receipt = `
-Rwandan Future Finance System
------------------------------
-Student: ${s.name}
-Class: ${s.class}
-Fee: ${s.fee}
-Paid: ${s.paid}
-Balance: ${balance}
-Status: ${getStatus(s)}
------------------------------
-Thank you!
+========================================
+   BRIGHT ACADEMY SCHOOL
+========================================
+
+Receipt No : ${receiptNo}
+Date       : ${today}
+
+----------------------------------------
+STUDENT INFORMATION
+----------------------------------------
+
+Student Name : ${s.name}
+Class        : ${s.class}
+
+----------------------------------------
+PAYMENT DETAILS
+----------------------------------------
+
+School Fee   : ${s.fee} RWF
+Paid Amount  : ${s.paid} RWF
+Balance      : ${balance} RWF
+Status       : ${getStatus(s)}
+
+----------------------------------------
+RECEIVED BY
+----------------------------------------
+
+Finance Officer Signature:
+__________________________
+
+School Stamp:
+__________________________
+
+========================================
+      THANK YOU FOR YOUR PAYMENT
+========================================
 `;
-    let blob = new Blob([receipt], {type: "text/plain"});
+
+    let blob = new Blob([receipt], {type:"text/plain"});
+
     let link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `${s.name}_receipt.txt`;
+    link.download = `${s.name}_Receipt.txt`;
     link.click();
 }
-
 function addStudent() {
+
     let name = document.getElementById("newName").value;
     let sclass = document.getElementById("newClass").value;
     let fee = parseInt(document.getElementById("newFee").value);
     let paid = parseInt(document.getElementById("newPaid").value) || 0;
+    let month = document.getElementById("month").value;
 
     if (!name || !sclass || isNaN(fee)) {
         alert("Please select name, class and enter valid fee!");
         return;
     }
 
-    students.push({ name: name, class: sclass, fee: fee, paid: paid });
+    // Reba niba asanzwe ari muri system
+    let existingStudent = students.find(
+        s => s.name === name && s.class === sclass
+    );
+
+    if(existingStudent){
+
+        // Ongeraho amafaranga mashya ku yari yarishyuye
+        existingStudent.paid += paid;
+
+    }else{
+
+        // Niba ari ubwa mbere yishyura
+        students.push({
+            name: name,
+            class: sclass,
+            fee: fee,
+            paid: paid
+        });
+
+    }
+
+    // Bika transaction muri monthly report
+    payments.push({
+        date: new Date().toLocaleDateString(),
+        name: name,
+        class: sclass,
+        amount: paid,
+        month: month
+    });
+
     document.getElementById("newName").value = "";
     document.getElementById("newClass").value = "";
     document.getElementById("newFee").value = "";
     document.getElementById("newPaid").value = "";
 
     renderTable();
+    generateReports();
 }
 
 // LOGIN & LOGOUT
@@ -431,6 +586,79 @@ function logout(){
     document.getElementById("username").value = "";
     document.getElementById("password").value = "";
     document.getElementById("loginError").innerText = "";
+}
+function generateReports(){
+
+let m1 = document.getElementById("month1Table");
+let m2 = document.getElementById("month2Table");
+let m3 = document.getElementById("month3Table");
+
+m1.innerHTML="";
+m2.innerHTML="";
+m3.innerHTML="";
+
+let total1=0;
+let total2=0;
+let total3=0;
+
+payments.forEach(p=>{
+
+let row=`
+<tr>
+<td>${p.date}</td>
+<td>${p.name}</td>
+<td>${p.class}</td>
+<td>${p.amount}</td>
+</tr>
+`;
+
+if(p.month==="Month 1"){
+m1.innerHTML += row;
+total1 += p.amount;
+}
+
+if(p.month==="Month 2"){
+m2.innerHTML += row;
+total2 += p.amount;
+}
+
+if(p.month==="Month 3"){
+m3.innerHTML += row;
+total3 += p.amount;
+}
+
+});
+
+let grandTotal = total1 + total2 + total3;
+
+document.getElementById("annualReport").innerHTML=`
+<table>
+<tr>
+<th>Month</th>
+<th>Total Collected</th>
+</tr>
+
+<tr>
+<td>Month 1</td>
+<td>${total1}</td>
+</tr>
+
+<tr>
+<td>Month 2</td>
+<td>${total2}</td>
+</tr>
+
+<tr>
+<td>Month 3</td>
+<td>${total3}</td>
+</tr>
+
+<tr style="background:#1e3a8a;color:white">
+<td><b>Total 3 Months</b></td>
+<td><b>${grandTotal}</b></td>
+</tr>
+</table>
+`;
 }
 </script>
 </body>
