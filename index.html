@@ -168,6 +168,28 @@ transform:translate(0,0);
 transform:translate(-300px,-300px);
 }
 }
+  @media print {
+
+  body * {
+    visibility: hidden; /* hide everything */
+  }
+
+  #report, #report * {
+    visibility: visible; /* show only report */
+  }
+
+  #report {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 5mm;
+  }
+}
 
 /* LOGIN BOX */
 .login-box{
