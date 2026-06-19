@@ -1867,16 +1867,16 @@ window.printAllReports = function () {
             background: white;
           }
 
-        .report{
+   .report{
   border:2px solid #000;
   padding:8px;
-  margin-bottom:5px;
+  margin-bottom:8px;
   position:relative;
 
   page-break-inside:avoid;
   break-inside:avoid;
 
-  transform:scale(0.92);
+  transform:scale(1); /* 🔥 FIX: full size */
   transform-origin:top left;
 }
 
@@ -1915,24 +1915,22 @@ window.printAllReports = function () {
             border-left: 5px solid green;
           }
 
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 7px;
-              table-layout: fixed;
-          }
+         table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px; /* 🔥 was 7px */
+  table-layout: fixed;
+}
 
-          th, td {
-            border: 1px solid #000;
-            padding: 1px;
-            text-align: center;
-            word-wrap: break-word;
-          }
-
-          @page {
-            size: A4 landscape;
-            margin: 3mm;
-          }
+th, td {
+  border: 1px solid #000;
+  padding: 3px; /* 🔥 was 1px */
+  text-align: center;
+}
+        @page {
+  size: A4 landscape;
+  margin: 10mm; /* 🔥 was 3mm */
+}
         </style>
       </head>
 
