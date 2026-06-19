@@ -452,18 +452,22 @@ float:right;
 
   .report {
     width: 100%;
-    height: auto;
-
-    /* ❌ removed scaling (it makes text small) */
     transform: none;
+    overflow: hidden;
 
-    page-break-inside: avoid;
-    break-inside: avoid;
+    page-break-after: always;
+    break-after: page;
   }
 
   table {
     width: 100%;
-    font-size: 12px; /* 🔥 increased for readability */
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   th, td {
@@ -474,7 +478,7 @@ float:right;
   .line-input {
     font-size: 13px;
   }
-
+}
 }
 .upload-btn{
 display:inline-block;
