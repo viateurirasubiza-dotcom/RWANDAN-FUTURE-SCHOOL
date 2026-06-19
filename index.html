@@ -414,35 +414,45 @@ padding:8px 15px;
 float:right;
 }
 
-@media print{
-body *{
-visibility:hidden;
-}
+@media print {
 
-#report,#report *{
-visibility:visible;
-}
+  @page {
+    size: A4 landscape;
+    margin: 5mm;
+  }
 
-#report{
-position:absolute;
-left:0;
-top:0;
-width:100%;
-background:white;
-}
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial;
+    color: black;
+  }
 
-button{
-display:none !important;
-}
+  .report {
+    width: 100%;
+    height: auto;
 
-.table-report{
-font-size:10px;
-}
+    /* ❌ removed scaling (it makes text small) */
+    transform: none;
 
-@page{
-size:A4 landscape;
-margin:10mm;
-}
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  table {
+    width: 100%;
+    font-size: 12px; /* 🔥 increased for readability */
+  }
+
+  th, td {
+    font-size: 12px;
+    padding: 4px;
+  }
+
+  .line-input {
+    font-size: 13px;
+  }
+
 }
 .upload-btn{
 display:inline-block;
