@@ -199,10 +199,55 @@ th {
 .action-btn:hover {
     transform: scale(1.05);
 }
+.download-buttons{
+    text-align:center;
+    margin:20px 0;
+}
 
+.download-buttons button{
+    border:none;
+    padding:12px 22px;
+    margin:8px;
+    border-radius:10px;
+    font-size:16px;
+    font-weight:bold;
+    color:white;
+    cursor:pointer;
+    transition:0.3s;
+    box-shadow:0 4px 10px rgba(0,0,0,0.25);
+}
+
+.download-buttons button:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 18px rgba(0,0,0,0.35);
+}
+.add-btn{
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+    color:#fff;
+    border:none;
+    padding:12px 25px;
+    border-radius:10px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 5px 12px rgba(0,0,0,0.25);
+    transition:all .3s ease;
+}
+
+.add-btn:hover{
+    background:linear-gradient(135deg,#15803d,#16a34a);
+    transform:translateY(-3px);
+    box-shadow:0 8px 18px rgba(0,0,0,0.35);
+}
+
+.add-btn:active{
+    transform:scale(0.97);
+}
 </style>
 </head>
 <body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <!-- LOGIN PAGE -->
 <div id="loginPage" class="login-card">
@@ -288,8 +333,25 @@ th {
 </select>
         <input type="number" id="newFee" placeholder="Fee">
         <input type="number" id="newPaid" placeholder="Paid">
-        <button onclick="addStudent()">Add Student</button>
+        <button class="add-btn" onclick="addStudent()">
+➕ Add Student
+</button>
     </div>
+<div class="download-buttons">
+
+<button style="background:#2563eb;" onclick="downloadFullTablePDF()">
+📄 Download Full Table
+</button>
+
+<button style="background:#16a34a;" onclick="downloadMonthlyReport()">
+📅 Download Monthly Report
+</button>
+
+<button style="background:#f59e0b;" onclick="downloadAnnualReport()">
+📊 Download Annual Report
+</button>
+
+</div>
 
     <div class="search-box">
         <input type="text" id="search" onkeyup="renderTable()" placeholder="Search student name...">
@@ -659,6 +721,177 @@ document.getElementById("annualReport").innerHTML=`
 </tr>
 </table>
 `;
+}
+async function downloadFullTablePDF(){
+
+const { jsPDF } = window.jspdf;
+
+const doc = new jsPDF("landscape");
+
+doc.setFontSize(18);
+doc.text("Rwandan Future Finance System",14,15);
+
+doc.setFontSize(12);
+doc.text("Student Finance Report",14,23);
+
+let rows=[];
+
+students.forEach(s=>{
+
+rows.push([
+s.name,
+s.class,
+s.fee,
+s.paid,
+s.fee-s.paid,
+getStatus(s)
+]);
+
+});
+
+doc.autoTable({
+
+head:[[
+"Name",
+"Class",
+"Fee",
+"Paid",
+"Balance",
+"Status"
+]],
+
+body:rows,
+
+startY:30,
+
+theme:"grid",
+
+headStyles:{
+fillColor:[30,58,138],
+textColor:255,
+fontStyle:"bold"
+},
+
+styles:{
+fontSize:10,
+halign:"center",
+valign:"middle"
+}
+
+});
+
+doc.save("Student_Finance_Report.pdf");
+
+}
+function downloadMonthlyReport(){
+
+const { jsPDF } = window.jspdf;
+
+const doc = new jsPDF("landscape");
+
+doc.setFontSize(18);
+doc.text("Monthly Finance Report",14,15);
+
+let rows=[];
+
+payments.forEach(p=>{
+
+rows.push([
+p.date,
+p.month,
+p.name,
+p.class,
+p.amount
+]);
+
+});
+
+doc.autoTable({
+
+head:[[
+"Date",
+"Month",
+"Student",
+"Class",
+"Amount (RWF)"
+]],
+
+body:rows,
+
+startY:25,
+
+theme:"grid",
+
+headStyles:{
+fillColor:[30,58,138],
+textColor:255
+},
+
+styles:{
+fontSize:10,
+halign:"center"
+}
+
+});
+
+doc.save("Monthly_Report.pdf");
+
+}
+function downloadAnnualReport(){
+
+const { jsPDF } = window.jspdf;
+
+const doc = new jsPDF();
+
+let total1 = payments
+.filter(p=>p.month==="Month 1")
+.reduce((sum,p)=>sum+p.amount,0);
+
+let total2 = payments
+.filter(p=>p.month==="Month 2")
+.reduce((sum,p)=>sum+p.amount,0);
+
+let total3 = payments
+.filter(p=>p.month==="Month 3")
+.reduce((sum,p)=>sum+p.amount,0);
+
+let grandTotal = total1 + total2 + total3;
+
+doc.setFontSize(18);
+doc.text("Rwandan Future Finance System",20,20);
+
+doc.setFontSize(14);
+doc.text("Annual Finance Report",20,30);
+
+doc.autoTable({
+
+head:[["Month","Total Collected (RWF)"]],
+
+body:[
+["Month 1", total1],
+["Month 2", total2],
+["Month 3", total3],
+["TOTAL (3 Months)", grandTotal]
+],
+
+startY:40,
+
+theme:"grid",
+
+headStyles:{
+fillColor:[30,58,138],
+textColor:255
+},
+
+styles:{
+halign:"center",
+fontSize:11
+}
+
+});
+
+doc.save("Annual_Report.pdf");
+
 }
 </script>
 </body>
